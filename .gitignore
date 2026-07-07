@@ -1,0 +1,34 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# Node
+node_modules/
+apps/dashboard/dist/
+
+# Models (large binary weights)
+models/
+
+# Data - raw and generated, not checked in
+data/raw/
+data/tile_cache/
+data/clips/
+data/queue/
+eval/results/
+
+# Env / secrets
+.env
+.env.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Claude Code local settings
+.claude/
