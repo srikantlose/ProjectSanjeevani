@@ -11,7 +11,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 - [x] E0-T2 — Directory scaffold
 - [x] E0-T3 — Python environment + CUDA verification
 - [x] E0-T4 — Vite dashboard scaffold
-- [ ] E0-T5 — Model download script
+- [x] E0-T5 — Model download script
 
 ## E1 — Video + Detection Core
 - [ ] E1-T1 — Video source with real-time pacing
