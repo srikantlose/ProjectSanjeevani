@@ -16,7 +16,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 ## E1 — Video + Detection Core
 - [x] E1-T1 — Video source with real-time pacing
 - [x] E1-T2 — Detector + tracker wrapper
-- [ ] E1-T3 — FrameContext / track-history builder
+- [x] E1-T3 — FrameContext / track-history builder
 - [ ] E1-T4 — Debug overlay / annotated output
 
 ## E2 — Signals (Direct)
