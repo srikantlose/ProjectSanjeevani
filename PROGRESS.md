@@ -10,7 +10,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 - [x] E0-T1 — Repo init & gitignore
 - [x] E0-T2 — Directory scaffold
 - [x] E0-T3 — Python environment + CUDA verification
-- [ ] E0-T4 — Vite dashboard scaffold
+- [x] E0-T4 — Vite dashboard scaffold
 - [ ] E0-T5 — Model download script
 
 ## E1 — Video + Detection Core
@@ -83,3 +83,4 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 *(Append one entry per deviation from the plan — new threshold values, substituted datasets, skipped stretch items, etc. Keep entries short: task ID, what changed, why.)*
 
 - E0-T3 — Plan specified Python 3.11; only 3.13 and 3.14 were available on this machine (no 3.11 installer present), so the venv was created with Python 3.13.7. PyTorch 2.11.0+cu128 installs cleanly and `torch.cuda.is_available()` returns `True` on the RTX 4060 (driver 591.74, CUDA 13.1) — no functional impact expected. Torch/torchvision installed via `--index-url https://download.pytorch.org/whl/cu128` (cu128 build; driver's CUDA 13.1 is backward-compatible with cu128 wheels).
+- E0-T4 — `npm install -D tailwindcss` pulled Tailwind v4.3.2, which replaced the v3-style `tailwind.config.js` + PostCSS + `autoprefixer` flow described in plan.md §E0-T4 with a CSS-first setup: `@tailwindcss/vite` plugin registered in `vite.config.ts`, and `src/index.css` now just has `@import "tailwindcss";` (no `tailwind.config.js`/`postcss.config.js` files exist). Verified working via `vite build` (compiled utility classes present in output CSS) and a live `vite dev` request. Also stripped the default Vite/React template's marketing content (hero image, logos, docs/social sections) from `App.tsx`/`App.css`/`assets/` since it's all replaced in E7 anyway — `App.tsx` is currently a minimal placeholder.
