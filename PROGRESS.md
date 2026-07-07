@@ -21,7 +21,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 
 ## E2 — Signals (Direct)
 - [x] E2-T1 — Signal base interface + synthetic test fixtures
-- [ ] E2-T2 — Collision signal
+- [x] E2-T2 — Collision signal
 - [ ] E2-T3 — Stationary signal
 - [ ] E2-T4 — Flow signal
 
@@ -86,3 +86,4 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 - E0-T4 — `npm install -D tailwindcss` pulled Tailwind v4.3.2, which replaced the v3-style `tailwind.config.js` + PostCSS + `autoprefixer` flow described in plan.md §E0-T4 with a CSS-first setup: `@tailwindcss/vite` plugin registered in `vite.config.ts`, and `src/index.css` now just has `@import "tailwindcss";` (no `tailwind.config.js`/`postcss.config.js` files exist). Verified working via `vite build` (compiled utility classes present in output CSS) and a live `vite dev` request. Also stripped the default Vite/React template's marketing content (hero image, logos, docs/social sections) from `App.tsx`/`App.css`/`assets/` since it's all replaced in E7 anyway — `App.tsx` is currently a minimal placeholder.
 - E0-T4 (follow-up, 2026-07-07) — User asked to spend as little time/effort as possible on frontend/UI-UX until they provide styles/designs later. Applies to all remaining E7 dashboard tasks: build functional data-wiring only, no visual design work. Saved as a standing memory (`feedback_frontend_minimal`).
 - E1-T2 — Detector/tracker wrapper needs real detectable content to verify; synthetic solid-color frames (used for E1-T1) don't produce YOLO detections. Added `tests/conftest.py::vtest_video`, a session-scoped fixture that downloads a small standard OpenCV test clip (pedestrians/cars, BSD-licensed) on demand into `tests/fixtures/` (gitignored, not committed) — same on-demand pattern as `scripts/download_models.py`. This is dev/test infra only, not part of the project's actual dataset (§6/E8). Also added `lap` to `requirements.txt` (pulled in automatically by ultralytics as a ByteTrack dependency).
+- E2-T2 — Collision signal's confirmation timing: §7.4 describes the stationary-confirmation as happening "within 3s" of the overlap+velocity-drop event. Velocity is smoothed over a 5-frame window (tracker_ctx), so a real deceleration-to-zero takes a few frames to read as fully stationary — that lag stacked with the 3s stationary-duration requirement can exceed a literal 3s deadline. Implemented `PENDING_EXPIRY_S = 15.0` (generous cleanup timeout) while keeping the actual physical requirement `STATIONARY_DURATION_S = 3.0` from spec. Net effect on behavior: unchanged (still requires overlap/near-contact + sudden velocity change + 3s of subsequent rest before escalating 0.6→0.95), just not hard-cut at exactly 3 wall-clock seconds.
