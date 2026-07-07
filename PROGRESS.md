@@ -20,7 +20,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 - [x] E1-T4 — Debug overlay / annotated output
 
 ## E2 — Signals (Direct)
-- [ ] E2-T1 — Signal base interface + synthetic test fixtures
+- [x] E2-T1 — Signal base interface + synthetic test fixtures
 - [ ] E2-T2 — Collision signal
 - [ ] E2-T3 — Stationary signal
 - [ ] E2-T4 — Flow signal
