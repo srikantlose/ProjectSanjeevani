@@ -22,7 +22,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 ## E2 — Signals (Direct)
 - [x] E2-T1 — Signal base interface + synthetic test fixtures
 - [x] E2-T2 — Collision signal
-- [ ] E2-T3 — Stationary signal
+- [x] E2-T3 — Stationary signal
 - [ ] E2-T4 — Flow signal
 
 ## E3 — Signals (Novel) **[GATE]**
