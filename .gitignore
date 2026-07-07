@@ -20,6 +20,9 @@ data/clips/
 data/queue/
 eval/results/
 
+# Test fixtures fetched on demand (see tests/conftest.py)
+tests/fixtures/
+
 # Env / secrets
 .env
 .env.local

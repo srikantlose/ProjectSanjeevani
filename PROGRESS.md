@@ -14,8 +14,8 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 - [x] E0-T5 — Model download script
 
 ## E1 — Video + Detection Core
-- [ ] E1-T1 — Video source with real-time pacing
-- [ ] E1-T2 — Detector + tracker wrapper
+- [x] E1-T1 — Video source with real-time pacing
+- [x] E1-T2 — Detector + tracker wrapper
 - [ ] E1-T3 — FrameContext / track-history builder
 - [ ] E1-T4 — Debug overlay / annotated output
 
@@ -84,3 +84,5 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 
 - E0-T3 — Plan specified Python 3.11; only 3.13 and 3.14 were available on this machine (no 3.11 installer present), so the venv was created with Python 3.13.7. PyTorch 2.11.0+cu128 installs cleanly and `torch.cuda.is_available()` returns `True` on the RTX 4060 (driver 591.74, CUDA 13.1) — no functional impact expected. Torch/torchvision installed via `--index-url https://download.pytorch.org/whl/cu128` (cu128 build; driver's CUDA 13.1 is backward-compatible with cu128 wheels).
 - E0-T4 — `npm install -D tailwindcss` pulled Tailwind v4.3.2, which replaced the v3-style `tailwind.config.js` + PostCSS + `autoprefixer` flow described in plan.md §E0-T4 with a CSS-first setup: `@tailwindcss/vite` plugin registered in `vite.config.ts`, and `src/index.css` now just has `@import "tailwindcss";` (no `tailwind.config.js`/`postcss.config.js` files exist). Verified working via `vite build` (compiled utility classes present in output CSS) and a live `vite dev` request. Also stripped the default Vite/React template's marketing content (hero image, logos, docs/social sections) from `App.tsx`/`App.css`/`assets/` since it's all replaced in E7 anyway — `App.tsx` is currently a minimal placeholder.
+- E0-T4 (follow-up, 2026-07-07) — User asked to spend as little time/effort as possible on frontend/UI-UX until they provide styles/designs later. Applies to all remaining E7 dashboard tasks: build functional data-wiring only, no visual design work. Saved as a standing memory (`feedback_frontend_minimal`).
+- E1-T2 — Detector/tracker wrapper needs real detectable content to verify; synthetic solid-color frames (used for E1-T1) don't produce YOLO detections. Added `tests/conftest.py::vtest_video`, a session-scoped fixture that downloads a small standard OpenCV test clip (pedestrians/cars, BSD-licensed) on demand into `tests/fixtures/` (gitignored, not committed) — same on-demand pattern as `scripts/download_models.py`. This is dev/test infra only, not part of the project's actual dataset (§6/E8). Also added `lap` to `requirements.txt` (pulled in automatically by ultralytics as a ByteTrack dependency).

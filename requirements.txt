@@ -2,6 +2,7 @@
 # then: pip install -r requirements.txt
 
 ultralytics
+lap
 opencv-python
 supervision
 scikit-learn
