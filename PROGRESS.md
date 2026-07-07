@@ -7,9 +7,9 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 ---
 
 ## E0 — Scaffold
-- [ ] E0-T1 — Repo init & gitignore
-- [ ] E0-T2 — Directory scaffold
-- [ ] E0-T3 — Python environment + CUDA verification
+- [x] E0-T1 — Repo init & gitignore
+- [x] E0-T2 — Directory scaffold
+- [x] E0-T3 — Python environment + CUDA verification
 - [ ] E0-T4 — Vite dashboard scaffold
 - [ ] E0-T5 — Model download script
 
@@ -82,4 +82,4 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 
 *(Append one entry per deviation from the plan — new threshold values, substituted datasets, skipped stretch items, etc. Keep entries short: task ID, what changed, why.)*
 
--
+- E0-T3 — Plan specified Python 3.11; only 3.13 and 3.14 were available on this machine (no 3.11 installer present), so the venv was created with Python 3.13.7. PyTorch 2.11.0+cu128 installs cleanly and `torch.cuda.is_available()` returns `True` on the RTX 4060 (driver 591.74, CUDA 13.1) — no functional impact expected. Torch/torchvision installed via `--index-url https://download.pytorch.org/whl/cu128` (cu128 build; driver's CUDA 13.1 is backward-compatible with cu128 wheels).

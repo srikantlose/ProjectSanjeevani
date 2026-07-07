@@ -1,0 +1,18 @@
+# Install PyTorch/torchvision separately first (CUDA build matches local driver — see README/plan.md E0-T3),
+# then: pip install -r requirements.txt
+
+ultralytics
+opencv-python
+supervision
+scikit-learn
+numpy
+scipy
+shapely
+pyyaml
+httpx
+pytest
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+websockets
