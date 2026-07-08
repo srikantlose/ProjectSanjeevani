@@ -1,8 +1,8 @@
 # Project Sanjeevani — Progress Tracker
 
-Read `plan.md` first. Work top-to-bottom, task by task. Tick a box the moment its acceptance check passes. Add a one-line note under a task if any threshold, config value, or approach deviated from the plan — future sessions rely on these notes to know what actually shipped vs. what was originally specced.
+Read `plan.md` first (rev. 2, 2026-07-08). Work top-to-bottom, task by task. Tick a box the moment its acceptance check passes. Add a one-line note under a task if any threshold, config value, or approach deviated from the plan — future sessions rely on these notes to know what actually shipped vs. what was originally specced.
 
-Epics marked **[GATE]** must fully pass their gate task's acceptance check before the next epic begins.
+Epics marked **[GATE]** must fully pass their gate task's acceptance check before the next epic begins. Tasks marked **USER ACTION REQUIRED** pause on the user; continue with any later task that doesn't depend on them.
 
 ---
 
@@ -25,56 +25,60 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 - [x] E2-T3 — Stationary signal
 - [x] E2-T4 — Flow signal
 
-## E3 — Signals (Novel) **[GATE]**
+## E3 — Signals (Novel)
 - [x] E3-T1 — Crowd-as-signal
 - [x] E3-T2 — Rider-down heuristic
-- [ ] E3-T3 — Pose confirmation + real-clip gate — **EPIC GATE: occluded clip fires `crowd`, not `collision`**
+- [ ] E3-T3 (revised) — Pose confirmation, stub-injected tests + real-model smoke *(the occluded-clip gate moved to E8-T3/GATE-A)*
 
-## E4 — Fusion + Evidence
-- [ ] E4-T1 — Fusion module
+## E4 — Fusion + Evidence + Engine wiring
+- [ ] E4-T0 — Config system (config.py, signal_factory.py, mode YAMLs, signal kwargs refactor, pytest.ini)
+- [ ] E4-T1 — Fusion module (weighted sum, overrides, cooldown grid, IncidentCandidate)
 - [ ] E4-T2 — Severity module
-- [ ] E4-T3 — Ring buffer + evidence writer
+- [ ] E4-T3 — Evidence buffer (ring buffer, clip + snapshot, ffmpeg re-encode w/ fallback)
 - [ ] E4-T4 — Emitter with offline queue
+- [ ] E4-T5 — Engine integration (vtest highway config acceptance, no new data needed)
 
 ## E5 — API Core
-- [ ] E5-T1 — FastAPI app + SQLAlchemy models
+- [ ] E5-T1 — App + models + CORS + seed-on-startup
 - [ ] E5-T2 — Candidate endpoint + persistence
 - [ ] E5-T3 — WebSocket hub
-- [ ] E5-T4 — Verify endpoint + state machine skeleton
-- [ ] E5-T5 — Static media + tile proxy
+- [ ] E5-T4 — Verify endpoint + state machine (dispatch stub)
+- [ ] E5-T5 — Media mounts + tile proxy
 
 ## E6 — Simulators
-- [ ] E6-T1 — Seed data files (hospitals, ambulances, junctions)
-- [ ] E6-T2 — Routing client + route prefetch
-- [ ] E6-T3 — Ambulance mover
+- [ ] E6-T1 — Seed files (pinned §9.1 values) + junctions script + startup load
+- [ ] E6-T2 — Routing client + geo helpers + route prefetch (26 committed GeoJSONs)
+- [ ] E6-T3 — Ambulance mover (replaces E5-T4 stub)
 - [ ] E6-T4 — Corridor sequencer
 - [ ] E6-T5 — Hospital pre-alert
 
-## E7 — Dashboard
-- [ ] E7-T1 — App shell, router, WS store
-- [ ] E7-T2 — Control room — feed grid + incident cards
+## E7 — Dashboard (MINIMAL UI ONLY — no styling/design; that is E10-T5)
+- [ ] E7-T1 — Shell, router, types, store, ws, api helpers
+- [ ] E7-T2 — FeedGrid + IncidentFeed
 - [ ] E7-T3 — WhyPanel + VerifyModal
-- [ ] E7-T4 — Dispatch map + ambulance animation
-- [ ] E7-T5 — Corridor + hospital markers + ETA/stopwatch
+- [ ] E7-T4 — Dispatch map + ambulance tween + route line
+- [ ] E7-T5 — Corridor circles + EtaBanner + Stopwatch
 - [ ] E7-T6 — Hospital console
 - [ ] E7-T7 — Metrics view
 
-## E8 — Scenario Content **[GATE]**
-- [ ] E8-T1 — Dataset acquisition
-- [ ] E8-T2 — Camera ROI configs for the two demo cameras
-- [ ] E8-T3 — Scenario 1 — junction rider-down, occluded (end-to-end)
-- [ ] E8-T4 — Scenario 2 — highway stationary vehicle (end-to-end) — **EPIC GATE: full 7-beat demo storyline runs with no manual intervention beyond video switch + Confirm taps**
+## E8 — Scenario Content **[GATE-A and GATE-B live here]**
+- [ ] E8-T0 — ROI annotation tool (scripts/annotate_roi.py)
+- [ ] E8-T1 — Dataset acquisition — **USER ACTION REQUIRED** (docs/data_checklist.md + make_clips.py + manifest ≥15 rows)
+- [ ] E8-T2 — Demo camera configs + scenario YAMLs (placeholder occluded clip; swap later is config-only)
+- [ ] E8-T3 — Scenario 1 end-to-end — **GATE-A: crowd ≥0.5 while collision <0.9 on the occluded clip; fusion fires; DISPATCHED with one Confirm**
+- [ ] E8-T4 — Scenario 2 end-to-end — **GATE-B: full 7-beat demo, both scenarios back-to-back, no manual intervention beyond engine start + Confirm taps**
 
 ## E9 — Evaluation
-- [ ] E9-T1 — Eval runner
-- [ ] E9-T2 — Metrics report + API wiring
-- [ ] E9-T3 — Near-miss study
+- [ ] E9-T1 — Eval runner (needs E8-T1 data)
+- [ ] E9-T2 — Metrics API + dashboard wiring
+- [ ] E9-T3 — Near-miss study (public long-form footage per user decision 2026-07-08)
 
 ## E10 — Polish + Demo Insurance
-- [ ] E10-T1 — Demo runbook script
+- [ ] E10-T1 — Preflight script + run_demo.ps1
 - [ ] E10-T2 — Rehearsal checklist + backup video
-- [ ] E10-T3 — Report skeleton fill-in
+- [ ] E10-T3 — Report skeleton + future-work doc fill-in
 - [ ] E10-T4 (stretch, optional) — IDD fine-tuning
+- [ ] E10-T5 — Styling pass — **BLOCKED ON USER design specs**
 
 ---
 
@@ -82,10 +86,11 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 
 *(Append one entry per deviation from the plan — new threshold values, substituted datasets, skipped stretch items, etc. Keep entries short: task ID, what changed, why.)*
 
-- E0-T3 — Plan specified Python 3.11; only 3.13 and 3.14 were available on this machine (no 3.11 installer present), so the venv was created with Python 3.13.7. PyTorch 2.11.0+cu128 installs cleanly and `torch.cuda.is_available()` returns `True` on the RTX 4060 (driver 591.74, CUDA 13.1) — no functional impact expected. Torch/torchvision installed via `--index-url https://download.pytorch.org/whl/cu128` (cu128 build; driver's CUDA 13.1 is backward-compatible with cu128 wheels).
-- E0-T4 — `npm install -D tailwindcss` pulled Tailwind v4.3.2, which replaced the v3-style `tailwind.config.js` + PostCSS + `autoprefixer` flow described in plan.md §E0-T4 with a CSS-first setup: `@tailwindcss/vite` plugin registered in `vite.config.ts`, and `src/index.css` now just has `@import "tailwindcss";` (no `tailwind.config.js`/`postcss.config.js` files exist). Verified working via `vite build` (compiled utility classes present in output CSS) and a live `vite dev` request. Also stripped the default Vite/React template's marketing content (hero image, logos, docs/social sections) from `App.tsx`/`App.css`/`assets/` since it's all replaced in E7 anyway — `App.tsx` is currently a minimal placeholder.
-- E0-T4 (follow-up, 2026-07-07) — User asked to spend as little time/effort as possible on frontend/UI-UX until they provide styles/designs later. Applies to all remaining E7 dashboard tasks: build functional data-wiring only, no visual design work. Saved as a standing memory (`feedback_frontend_minimal`).
-- E1-T2 — Detector/tracker wrapper needs real detectable content to verify; synthetic solid-color frames (used for E1-T1) don't produce YOLO detections. Added `tests/conftest.py::vtest_video`, a session-scoped fixture that downloads a small standard OpenCV test clip (pedestrians/cars, BSD-licensed) on demand into `tests/fixtures/` (gitignored, not committed) — same on-demand pattern as `scripts/download_models.py`. This is dev/test infra only, not part of the project's actual dataset (§6/E8). Also added `lap` to `requirements.txt` (pulled in automatically by ultralytics as a ByteTrack dependency).
+- 2026-07-08 — **Plan rev. 2**: full codebase review; restructured E3-T3→E10 with detailed contracts (config system E4-T0, engine integration E4-T5, CORS, pinned seed data, minimal-UI E7, ROI tool task E8-T0, user-checklist data policy). User decisions captured: datasets via script+checklist; occluded demo clip = placeholder now/staged later; near-miss study on public footage. Occluded-clip gate moved from E3-T3 to E8-T3 (GATE-A) since the footage only exists after E8-T1.
 - E3-T2 — Rider-down's vehicle-confirmation check originally re-tested "is the vehicle's velocity dropping *right now*" at the moment the 2s sustained-fall duration gate is satisfied — but that moment is, by construction, ~2s+ after the actual impact, so the live velocity-drop window (0.5s lookback) had long since gone quiet, and the signal never fired (caught by the acceptance test itself). Fixed by recording each vehicle's impact-signature timestamp once (`_vehicle_last_event_ts`) when a velocity-drop or aspect-change is observed, then checking that stored event time falls within `EVENT_CORRELATION_WINDOW_S=3.0`s of the person's fall onset (`lying_since`), rather than re-checking a live rolling window at confirmation time. Same class of timing bug as the E2-T2 collision-signal fix, now understood as a general pattern: any "confirm later" check needs to reference a stored event timestamp, not a live short-window recheck.
 - E3-T1 — Crowd signal's formation-rate check appends a cluster-membership observation *every frame* (using an empty set when no valid DBSCAN cluster exists that frame), rather than only appending when a cluster is found. This makes "new members vs. 8s ago" well-defined even when the cluster is forming from scratch (0 members 8s ago -> N members now), which is the actual demo scenario (bystanders converging where no crowd existed a moment before). Appending only on successful clustering (a more literal first reading of §7.4) breaks this case: the first frame a cluster becomes detectable already requires >=min_samples=4 mutually-close people, so an all-at-once-arriving group of exactly 5 would already show only 1 "new" member relative to the first (self-same) observation. Net behavior matches spec intent: fires on fresh crowd formation, does not fire on an already-stable clustered group.
 - E2-T2 — Collision signal's confirmation timing: §7.4 describes the stationary-confirmation as happening "within 3s" of the overlap+velocity-drop event. Velocity is smoothed over a 5-frame window (tracker_ctx), so a real deceleration-to-zero takes a few frames to read as fully stationary — that lag stacked with the 3s stationary-duration requirement can exceed a literal 3s deadline. Implemented `PENDING_EXPIRY_S = 15.0` (generous cleanup timeout) while keeping the actual physical requirement `STATIONARY_DURATION_S = 3.0` from spec. Net effect on behavior: unchanged (still requires overlap/near-contact + sudden velocity change + 3s of subsequent rest before escalating 0.6→0.95), just not hard-cut at exactly 3 wall-clock seconds.
+- E1-T2 — Detector/tracker wrapper needs real detectable content to verify; synthetic solid-color frames (used for E1-T1) don't produce YOLO detections. Added `tests/conftest.py::vtest_video`, a session-scoped fixture that downloads a small standard OpenCV test clip (pedestrians/cars, BSD-licensed) on demand into `tests/fixtures/` (gitignored, not committed) — same on-demand pattern as `scripts/download_models.py`. This is dev/test infra only, not part of the project's actual dataset (§6/E8). Also added `lap` to `requirements.txt` (pulled in automatically by ultralytics as a ByteTrack dependency).
+- E0-T4 (follow-up, 2026-07-07) — User asked to spend as little time/effort as possible on frontend/UI-UX until they provide styles/designs later. Applies to all remaining E7 dashboard tasks: build functional data-wiring only, no visual design work. Saved as a standing memory (`feedback_frontend_minimal`).
+- E0-T4 — `npm install -D tailwindcss` pulled Tailwind v4.3.2, which replaced the v3-style `tailwind.config.js` + PostCSS + `autoprefixer` flow described in the original plan with a CSS-first setup: `@tailwindcss/vite` plugin registered in `vite.config.ts`, and `src/index.css` now just has `@import "tailwindcss";` (no `tailwind.config.js`/`postcss.config.js` files exist). Verified working via `vite build` (compiled utility classes present in output CSS) and a live `vite dev` request. Also stripped the default Vite/React template's marketing content (hero image, logos, docs/social sections) from `App.tsx`/`App.css`/`assets/` since it's all replaced in E7 anyway — `App.tsx` is currently a minimal placeholder.
+- E0-T3 — Plan specified Python 3.11; only 3.13 and 3.14 were available on this machine (no 3.11 installer present), so the venv was created with Python 3.13.7. PyTorch 2.11.0+cu128 installs cleanly and `torch.cuda.is_available()` returns `True` on the RTX 4060 (driver 591.74, CUDA 13.1) — no functional impact expected. Torch/torchvision installed via `--index-url https://download.pytorch.org/whl/cu128` (cu128 build; driver's CUDA 13.1 is backward-compatible with cu128 wheels).
