@@ -19,6 +19,7 @@ data/tile_cache/
 data/clips/
 data/queue/
 eval/results/
+data/sanjeevani.db
 
 # Test fixtures fetched on demand (see tests/conftest.py)
 tests/fixtures/

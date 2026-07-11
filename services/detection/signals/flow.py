@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import statistics
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from services.detection.signals.base import Signal, SignalResult
 from services.detection.tracker_ctx import FrameContext
@@ -32,7 +32,7 @@ def _segments_intersect(p1: Point, p2: Point, p3: Point, p4: Point) -> bool:
 class _ApproachState:
     p1: Point
     p2: Point
-    bin_history: deque = field(default_factory=lambda: deque(maxlen=ROLLING_WINDOW_BINS))
+    bin_history: deque
     current_bin_index: int = -1
     current_bin_count: int = 0
     low_streak: int = 0
@@ -41,8 +41,24 @@ class _ApproachState:
 class FlowSignal(Signal):
     name = "flow"
 
-    def __init__(self, count_lines: dict[str, tuple[Point, Point]]):
-        self._approaches = {name: _ApproachState(p1=p1, p2=p2) for name, (p1, p2) in count_lines.items()}
+    def __init__(
+        self,
+        count_lines: dict[str, tuple[Point, Point]],
+        bin_duration_s: float = BIN_DURATION_S,
+        rolling_window_bins: int = ROLLING_WINDOW_BINS,
+        collapse_ratio: float = COLLAPSE_RATIO,
+        min_consecutive_low_bins: int = MIN_CONSECUTIVE_LOW_BINS,
+        fire_score: float = FIRE_SCORE,
+    ):
+        self.bin_duration_s = bin_duration_s
+        self.rolling_window_bins = rolling_window_bins
+        self.collapse_ratio = collapse_ratio
+        self.min_consecutive_low_bins = min_consecutive_low_bins
+        self.fire_score = fire_score
+        self._approaches = {
+            name: _ApproachState(p1=p1, p2=p2, bin_history=deque(maxlen=rolling_window_bins))
+            for name, (p1, p2) in count_lines.items()
+        }
         self._last_centroid: dict[int, Point] = {}
 
     def update(self, frame_ctx: FrameContext) -> SignalResult:
@@ -58,7 +74,7 @@ class FlowSignal(Signal):
                         state.current_bin_count += 1
             self._last_centroid[track_id] = curr
 
-        bin_index = int(ts // BIN_DURATION_S)
+        bin_index = int(ts // self.bin_duration_s)
         for name, state in self._approaches.items():
             if state.current_bin_index == -1:
                 state.current_bin_index = bin_index
@@ -78,13 +94,13 @@ class FlowSignal(Signal):
         median = statistics.median(baseline)
         if median <= 0:
             return
-        if closed_count < median * COLLAPSE_RATIO:
+        if closed_count < median * self.collapse_ratio:
             state.low_streak += 1
         else:
             state.low_streak = 0
 
-        if state.low_streak >= MIN_CONSECUTIVE_LOW_BINS:
-            result.score = max(result.score, FIRE_SCORE)
+        if state.low_streak >= self.min_consecutive_low_bins:
+            result.score = max(result.score, self.fire_score)
             result.reasons.append(
                 f"flow: approach '{name}' throughput collapsed ({closed_count} vs median {median:.1f})"
             )

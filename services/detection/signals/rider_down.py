@@ -48,7 +48,28 @@ class _Sample:
 class RiderDownSignal(Signal):
     name = "rider_down"
 
-    def __init__(self):
+    def __init__(
+        self,
+        aspect_lying_threshold: float = ASPECT_LYING_THRESHOLD,
+        sustained_duration_s: float = SUSTAINED_DURATION_S,
+        proximity_multiplier: float = PROXIMITY_MULTIPLIER,
+        vehicle_velocity_drop_threshold: float = VEHICLE_VELOCITY_DROP_THRESHOLD,
+        vehicle_aspect_change_threshold: float = VEHICLE_ASPECT_CHANGE_THRESHOLD,
+        person_speed_threshold: float = PERSON_SPEED_THRESHOLD,
+        event_correlation_window_s: float = EVENT_CORRELATION_WINDOW_S,
+        primary_score: float = PRIMARY_SCORE,
+        velocity_window_s: float = VELOCITY_WINDOW_S,
+    ):
+        self.aspect_lying_threshold = aspect_lying_threshold
+        self.sustained_duration_s = sustained_duration_s
+        self.proximity_multiplier = proximity_multiplier
+        self.vehicle_velocity_drop_threshold = vehicle_velocity_drop_threshold
+        self.vehicle_aspect_change_threshold = vehicle_aspect_change_threshold
+        self.person_speed_threshold = person_speed_threshold
+        self.event_correlation_window_s = event_correlation_window_s
+        self.primary_score = primary_score
+        self.velocity_window_s = velocity_window_s
+
         self._lying_since: dict[int, float | None] = {}
         self._person_speed_ok_since: dict[int, float | None] = {}
         self._vehicle_velocity_history: dict[int, deque] = {}
@@ -65,7 +86,7 @@ class RiderDownSignal(Signal):
         hist = self._vehicle_velocity_history.get(track_id)
         if not hist or len(hist) < 2:
             return 0.0
-        target_ts = ts - VELOCITY_WINDOW_S
+        target_ts = ts - self.velocity_window_s
         past = min(hist, key=lambda s: abs(s.timestamp_s - target_ts))
         return abs(hist[-1].value - past.value)
 
@@ -73,14 +94,14 @@ class RiderDownSignal(Signal):
         hist = self._vehicle_aspect_history.get(track_id)
         if not hist or len(hist) < 2:
             return 0.0
-        target_ts = ts - VELOCITY_WINDOW_S
+        target_ts = ts - self.velocity_window_s
         past = min(hist, key=lambda s: abs(s.timestamp_s - target_ts))
         if past.value == 0:
             return 0.0
         return abs(hist[-1].value - past.value) / past.value
 
     def _score_for_person(self, person: TrackState, vehicle: TrackState, duration: float, event_ts: float) -> tuple[float, str]:
-        return PRIMARY_SCORE, (
+        return self.primary_score, (
             f"rider_down: person {person.track_id} aspect {person.bbox_aspect:.2f} sustained {duration:.1f}s, "
             f"near vehicle {vehicle.track_id} impact signature at t={event_ts:.1f}s"
         )
@@ -104,14 +125,14 @@ class RiderDownSignal(Signal):
             self._record_vehicle_history(v, ts)
             dv = self._vehicle_velocity_drop(v.track_id, ts)
             aspect_change = self._vehicle_aspect_change(v.track_id, ts)
-            if dv > VEHICLE_VELOCITY_DROP_THRESHOLD or aspect_change > VEHICLE_ASPECT_CHANGE_THRESHOLD:
+            if dv > self.vehicle_velocity_drop_threshold or aspect_change > self.vehicle_aspect_change_threshold:
                 self._vehicle_last_event_ts[v.track_id] = ts
 
         for t in tracks.values():
             if t.cls != "person":
                 continue
 
-            if t.bbox_aspect > ASPECT_LYING_THRESHOLD:
+            if t.bbox_aspect > self.aspect_lying_threshold:
                 if self._lying_since.get(t.track_id) is None:
                     self._lying_since[t.track_id] = ts
             else:
@@ -120,7 +141,7 @@ class RiderDownSignal(Signal):
                 continue
 
             speed = math.hypot(*t.velocity)
-            if speed < PERSON_SPEED_THRESHOLD:
+            if speed < self.person_speed_threshold:
                 if self._person_speed_ok_since.get(t.track_id) is None:
                     self._person_speed_ok_since[t.track_id] = ts
             else:
@@ -132,7 +153,7 @@ class RiderDownSignal(Signal):
                 continue
 
             duration = ts - max(lying_start, speed_ok_start)
-            if duration < SUSTAINED_DURATION_S:
+            if duration < self.sustained_duration_s:
                 continue
 
             self._on_primary_active(t, ts)
@@ -141,14 +162,14 @@ class RiderDownSignal(Signal):
             for v in vehicle_tracks:
                 dist = math.hypot(t.centroid[0] - v.centroid[0], t.centroid[1] - v.centroid[1])
                 v_diag = math.hypot(v.bbox[2] - v.bbox[0], v.bbox[3] - v.bbox[1])
-                if dist <= PROXIMITY_MULTIPLIER * v_diag:
+                if dist <= self.proximity_multiplier * v_diag:
                     nearby_vehicle = v
                     break
             if nearby_vehicle is None:
                 continue
 
             event_ts = self._vehicle_last_event_ts.get(nearby_vehicle.track_id)
-            if event_ts is None or abs(event_ts - lying_start) > EVENT_CORRELATION_WINDOW_S:
+            if event_ts is None or abs(event_ts - lying_start) > self.event_correlation_window_s:
                 continue
 
             score, reason = self._score_for_person(t, nearby_vehicle, duration, event_ts)
@@ -159,7 +180,9 @@ class RiderDownSignal(Signal):
         return result
 
 
-def _default_pose_checker(pose_weights: str = "models/yolo11s-pose.pt") -> Callable[[np.ndarray], bool]:
+def _default_pose_checker(
+    pose_weights: str = "models/yolo11s-pose.pt", lying_angle_deg: float = POSE_LYING_ANGLE_DEG
+) -> Callable[[np.ndarray], bool]:
     from ultralytics import YOLO
 
     model = YOLO(str(pose_weights))
@@ -180,7 +203,7 @@ def _default_pose_checker(pose_weights: str = "models/yolo11s-pose.pt") -> Calla
         vertical = np.array([0.0, 1.0])
         cos_angle = float(np.dot(torso, vertical) / np.linalg.norm(torso))
         angle_from_vertical = math.degrees(math.acos(max(-1.0, min(1.0, cos_angle))))
-        return angle_from_vertical > POSE_LYING_ANGLE_DEG
+        return angle_from_vertical > lying_angle_deg
 
     return check
 
@@ -199,10 +222,19 @@ class PoseConfirmedRiderDownSignal(RiderDownSignal):
 
     name = "rider_down"
 
-    def __init__(self, pose_weights: str = "models/yolo11s-pose.pt", check_every_n_frames: int = POSE_CHECK_EVERY_N_FRAMES, pose_checker: Callable[[np.ndarray], bool] | None = None):
-        super().__init__()
-        self._pose_checker = pose_checker or _default_pose_checker(pose_weights)
+    def __init__(
+        self,
+        pose_weights: str = "models/yolo11s-pose.pt",
+        check_every_n_frames: int = POSE_CHECK_EVERY_N_FRAMES,
+        pose_checker: Callable[[np.ndarray], bool] | None = None,
+        lying_angle_deg: float = POSE_LYING_ANGLE_DEG,
+        confirmed_score: float = POSE_CONFIRMED_SCORE,
+        **rider_down_kwargs,
+    ):
+        super().__init__(**rider_down_kwargs)
+        self._pose_checker = pose_checker or _default_pose_checker(pose_weights, lying_angle_deg=lying_angle_deg)
         self._check_every_n_frames = check_every_n_frames
+        self.confirmed_score = confirmed_score
         self._frame_counter = 0
         self._current_frame_image: np.ndarray | None = None
         self._pose_confirmed: dict[int, bool] = {}
@@ -228,6 +260,6 @@ class PoseConfirmedRiderDownSignal(RiderDownSignal):
     def _score_for_person(self, person: TrackState, vehicle: TrackState, duration: float, event_ts: float) -> tuple[float, str]:
         score, reason = super()._score_for_person(person, vehicle, duration, event_ts)
         if self._pose_confirmed.get(person.track_id):
-            score = POSE_CONFIRMED_SCORE
+            score = self.confirmed_score
             reason += ", pose_confirmed_lying"
         return score, reason

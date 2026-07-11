@@ -63,7 +63,24 @@ class _PendingCollision:
 class CollisionSignal(Signal):
     name = "collision"
 
-    def __init__(self):
+    def __init__(
+        self,
+        velocity_drop_threshold: float = VELOCITY_DROP_THRESHOLD,
+        velocity_window_s: float = VELOCITY_WINDOW_S,
+        stationary_speed_threshold: float = STATIONARY_SPEED_THRESHOLD,
+        stationary_duration_s: float = STATIONARY_DURATION_S,
+        pending_expiry_s: float = PENDING_EXPIRY_S,
+        initial_score: float = INITIAL_SCORE,
+        confirmed_score: float = CONFIRMED_SCORE,
+    ):
+        self.velocity_drop_threshold = velocity_drop_threshold
+        self.velocity_window_s = velocity_window_s
+        self.stationary_speed_threshold = stationary_speed_threshold
+        self.stationary_duration_s = stationary_duration_s
+        self.pending_expiry_s = pending_expiry_s
+        self.initial_score = initial_score
+        self.confirmed_score = confirmed_score
+
         self._velocity_history: dict[int, deque] = {}
         self._stationary_since: dict[int, float | None] = {}
         self._pending: list[_PendingCollision] = []
@@ -77,14 +94,14 @@ class CollisionSignal(Signal):
         hist = self._velocity_history.get(track_id)
         if not hist or len(hist) < 2:
             return 0.0
-        target_ts = ts - VELOCITY_WINDOW_S
+        target_ts = ts - self.velocity_window_s
         past = min(hist, key=lambda s: abs(s.timestamp_s - target_ts))
         current = hist[-1]
         return abs(current.magnitude - past.magnitude)
 
     def _update_stationary(self, track: TrackState, ts: float) -> None:
         speed = math.hypot(*track.velocity)
-        if speed < STATIONARY_SPEED_THRESHOLD:
+        if speed < self.stationary_speed_threshold:
             if self._stationary_since.get(track.track_id) is None:
                 self._stationary_since[track.track_id] = ts
         else:
@@ -106,18 +123,18 @@ class CollisionSignal(Signal):
 
         still_pending = []
         for pending in self._pending:
-            if ts - pending.event_ts > PENDING_EXPIRY_S:
+            if ts - pending.event_ts > self.pending_expiry_s:
                 continue
             confirmed = any(
-                self._stationary_duration(tid, ts) >= STATIONARY_DURATION_S for tid in pending.track_ids
+                self._stationary_duration(tid, ts) >= self.stationary_duration_s for tid in pending.track_ids
             )
             if confirmed:
-                result.score = max(result.score, CONFIRMED_SCORE)
+                result.score = max(result.score, self.confirmed_score)
                 result.reasons.append(f"collision: tracks {pending.track_ids} stationary-confirmed after impact")
                 result.fired_track_ids.extend(pending.track_ids)
             else:
                 still_pending.append(pending)
-                result.score = max(result.score, INITIAL_SCORE)
+                result.score = max(result.score, self.initial_score)
                 result.reasons.append(f"collision: tracks {pending.track_ids} overlap+velocity-drop (awaiting confirmation)")
                 result.fired_track_ids.extend(pending.track_ids)
         self._pending = still_pending
@@ -138,9 +155,9 @@ class CollisionSignal(Signal):
                     continue
                 dv_a = self._velocity_delta(a.track_id, ts)
                 dv_b = self._velocity_delta(b.track_id, ts)
-                if dv_a > VELOCITY_DROP_THRESHOLD or dv_b > VELOCITY_DROP_THRESHOLD:
+                if dv_a > self.velocity_drop_threshold or dv_b > self.velocity_drop_threshold:
                     self._pending.append(_PendingCollision(event_ts=ts, track_ids=pair_key))
-                    result.score = max(result.score, INITIAL_SCORE)
+                    result.score = max(result.score, self.initial_score)
                     result.reasons.append(
                         f"collision: tracks {pair_key} overlap/near-contact + velocity change {max(dv_a, dv_b):.1f}px/frame"
                     )

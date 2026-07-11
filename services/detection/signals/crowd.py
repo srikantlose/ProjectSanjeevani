@@ -44,11 +44,21 @@ class CrowdSignal(Signal):
         exclusion_zones: list[list[tuple[float, float]]] | None = None,
         eps_px: float = DBSCAN_EPS_PX,
         min_samples: int = DBSCAN_MIN_SAMPLES,
+        formation_window_s: float = FORMATION_WINDOW_S,
+        formation_growth_threshold: int = FORMATION_GROWTH_THRESHOLD,
+        convergence_cos_threshold: float = CONVERGENCE_COS_THRESHOLD,
+        formation_only_score: float = FORMATION_ONLY_SCORE,
+        confirmed_score: float = CONFIRMED_SCORE,
     ):
         self._road_polygon = Polygon(road_polygon) if road_polygon else None
         self._exclusion_zones = [Polygon(z) for z in (exclusion_zones or [])]
         self.eps_px = eps_px
         self.min_samples = min_samples
+        self.formation_window_s = formation_window_s
+        self.formation_growth_threshold = formation_growth_threshold
+        self.convergence_cos_threshold = convergence_cos_threshold
+        self.formation_only_score = formation_only_score
+        self.confirmed_score = confirmed_score
         self._history: deque = deque()
 
     def _eligible(self, centroid: tuple[float, float]) -> bool:
@@ -77,7 +87,7 @@ class CrowdSignal(Signal):
         member_ids = frozenset(t.track_id for t in cluster_members)
 
         self._history.append(_ClusterObservation(timestamp_s=ts, member_track_ids=member_ids))
-        while self._history and ts - self._history[0].timestamp_s > FORMATION_WINDOW_S:
+        while self._history and ts - self._history[0].timestamp_s > self.formation_window_s:
             self._history.popleft()
 
         if not member_ids:
@@ -85,11 +95,11 @@ class CrowdSignal(Signal):
 
         baseline_ids = self._history[0].member_track_ids
         new_members = member_ids - baseline_ids
-        if len(new_members) < FORMATION_GROWTH_THRESHOLD:
+        if len(new_members) < self.formation_growth_threshold:
             return result
 
-        score = FORMATION_ONLY_SCORE
-        reasons = [f"crowd: cluster grew by {len(new_members)} members within {FORMATION_WINDOW_S:.0f}s"]
+        score = self.formation_only_score
+        reasons = [f"crowd: cluster grew by {len(new_members)} members within {self.formation_window_s:.0f}s"]
 
         cluster_centroid = np.mean([t.centroid for t in cluster_members], axis=0)
         cos_sims = []
@@ -106,8 +116,8 @@ class CrowdSignal(Signal):
                 continue
             cos_sims.append(float(np.dot(vel, to_center) / (speed * norm)))
 
-        if cos_sims and (sum(cos_sims) / len(cos_sims)) > CONVERGENCE_COS_THRESHOLD:
-            score = CONFIRMED_SCORE
+        if cos_sims and (sum(cos_sims) / len(cos_sims)) > self.convergence_cos_threshold:
+            score = self.confirmed_score
             reasons.append(f"crowd: convergence confirmed (mean cos-sim {sum(cos_sims) / len(cos_sims):.2f})")
 
         result.score = score

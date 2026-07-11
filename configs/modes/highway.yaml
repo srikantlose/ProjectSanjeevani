@@ -1,0 +1,47 @@
+detector:
+  weights: models/yolo11s.pt
+  imgsz: 960
+  conf: 0.30
+  iou: 0.5
+  classes: [person, bicycle, car, motorcycle, bus, truck]
+  device: auto
+
+processing:
+  target_fps: 10
+  speed_factor: 1.0
+
+signals:
+  stationary:
+    speed_threshold: 3.0
+    min_duration_s: 8.0
+    ramp_full_duration_s: 20.0
+    initial_score: 0.5
+    max_score: 0.9
+  collision:
+    velocity_drop_threshold: 15.0
+    velocity_window_s: 0.5
+    stationary_speed_threshold: 3.0
+    stationary_duration_s: 3.0
+    pending_expiry_s: 15.0
+    initial_score: 0.6
+    confirmed_score: 0.95
+  flow:
+    bin_duration_s: 10.0
+    rolling_window_bins: 30
+    collapse_ratio: 0.3
+    min_consecutive_low_bins: 2
+    fire_score: 0.4
+
+fusion:
+  weights:
+    stationary: 0.5
+    collision: 0.3
+    flow: 0.2
+  candidate_threshold: 0.5
+  override_rules:
+    - signal: collision
+      min_score: 0.9
+    - signal: stationary
+      min_score: 0.85
+  cooldown_seconds: 60
+  cooldown_grid: [4, 4]

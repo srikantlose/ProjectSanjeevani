@@ -20,8 +20,21 @@ MAX_SCORE = 0.9
 class StationarySignal(Signal):
     name = "stationary"
 
-    def __init__(self, live_lane_polygon: list[tuple[float, float]] | None = None):
+    def __init__(
+        self,
+        live_lane_polygon: list[tuple[float, float]] | None = None,
+        speed_threshold: float = SPEED_THRESHOLD,
+        min_duration_s: float = MIN_DURATION_S,
+        ramp_full_duration_s: float = RAMP_FULL_DURATION_S,
+        initial_score: float = INITIAL_SCORE,
+        max_score: float = MAX_SCORE,
+    ):
         self._polygon = Polygon(live_lane_polygon) if live_lane_polygon else None
+        self.speed_threshold = speed_threshold
+        self.min_duration_s = min_duration_s
+        self.ramp_full_duration_s = ramp_full_duration_s
+        self.initial_score = initial_score
+        self.max_score = max_score
         self._stationary_since: dict[int, float | None] = {}
 
     def _in_lane(self, centroid: tuple[float, float]) -> bool:
@@ -41,18 +54,18 @@ class StationarySignal(Signal):
                 continue
 
             speed = math.hypot(*track.velocity)
-            if speed >= SPEED_THRESHOLD:
+            if speed >= self.speed_threshold:
                 self._stationary_since[track.track_id] = None
                 continue
             if self._stationary_since.get(track.track_id) is None:
                 self._stationary_since[track.track_id] = ts
 
             duration = ts - self._stationary_since[track.track_id]
-            if duration < MIN_DURATION_S:
+            if duration < self.min_duration_s:
                 continue
 
-            ramp = min(1.0, (duration - MIN_DURATION_S) / (RAMP_FULL_DURATION_S - MIN_DURATION_S))
-            score = INITIAL_SCORE + ramp * (MAX_SCORE - INITIAL_SCORE)
+            ramp = min(1.0, (duration - self.min_duration_s) / (self.ramp_full_duration_s - self.min_duration_s))
+            score = self.initial_score + ramp * (self.max_score - self.initial_score)
             result.score = max(result.score, score)
             result.reasons.append(f"stationary: track {track.track_id} at rest for {duration:.1f}s")
             result.fired_track_ids.append(track.track_id)
