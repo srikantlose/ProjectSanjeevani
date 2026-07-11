@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from services.api import models  # noqa: F401 -- registers ORM models on Base before create_all
 from services.api.db import Base, SessionLocal, engine
-from services.api.routers import ambulances, hospitals
+from services.api.routers import ambulances, hospitals, incidents
 from services.api.seed import load_seed_data
 
 
@@ -35,3 +35,4 @@ app.add_middleware(
 
 app.include_router(hospitals.router)
 app.include_router(ambulances.router)
+app.include_router(incidents.router)
