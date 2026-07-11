@@ -9,7 +9,8 @@ from sqlalchemy.orm import Session
 
 from services.api.db import get_db
 from services.api.models import Incident, IncidentSignal
-from services.api.schemas import CandidateSubmission
+from services.api.schemas import CandidateSubmission, VerifyRequest
+from services.api.sim.ambulance import dispatch_incident
 from services.api.ws import manager
 
 router = APIRouter()
@@ -78,3 +79,33 @@ def get_incident(incident_id: str, db: Session = Depends(get_db)):
     if incident is None:
         raise HTTPException(status_code=404, detail="incident not found")
     return incident_to_payload(incident)
+
+
+@router.post("/api/incidents/{incident_id}/verify")
+async def verify_incident(incident_id: str, body: VerifyRequest, db: Session = Depends(get_db)):
+    incident = db.get(Incident, incident_id)
+    if incident is None:
+        raise HTTPException(status_code=404, detail="incident not found")
+    if incident.status != "PENDING_VERIFICATION":
+        raise HTTPException(status_code=409, detail=f"incident is {incident.status}, not PENDING_VERIFICATION")
+
+    if body.decision == "reject":
+        incident.status = "REJECTED"
+        db.commit()
+        await manager.broadcast("incident.updated", {"id": incident.id, "status": incident.status})
+        return {"id": incident.id, "status": incident.status}
+
+    if body.decision == "confirm":
+        incident.status = "CONFIRMED"
+        db.commit()
+        await manager.broadcast("incident.updated", {"id": incident.id, "status": incident.status})
+
+        dispatch_incident(incident)  # E5-T4 stub: logs only; E6-T3 makes this real
+
+        incident.status = "DISPATCHED"
+        db.commit()
+        await manager.broadcast("incident.updated", {"id": incident.id, "status": incident.status})
+
+        return {"id": incident.id, "status": incident.status}
+
+    raise HTTPException(status_code=400, detail=f"invalid decision: {body.decision!r} (must be confirm or reject)")

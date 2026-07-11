@@ -42,7 +42,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 - [x] E5-T1 — App + models + CORS + seed-on-startup
 - [x] E5-T2 — Candidate endpoint + persistence
 - [x] E5-T3 — WebSocket hub
-- [ ] E5-T4 — Verify endpoint + state machine (dispatch stub)
+- [x] E5-T4 — Verify endpoint + state machine (dispatch stub)
 - [ ] E5-T5 — Media mounts + tile proxy
 
 ## E6 — Simulators
