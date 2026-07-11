@@ -1,0 +1,7 @@
+[
+  {"id": "amb_01", "name": "Ambulance 1", "home_lat": 12.9430, "home_lon": 77.5960},
+  {"id": "amb_02", "name": "Ambulance 2", "home_lat": 12.9293, "home_lon": 77.6198},
+  {"id": "amb_03", "name": "Ambulance 3", "home_lat": 12.9628, "home_lon": 77.5750},
+  {"id": "amb_04", "name": "Ambulance 4", "home_lat": 12.9592, "home_lon": 77.6480},
+  {"id": "amb_05", "name": "Ambulance 5", "home_lat": 13.0311, "home_lon": 77.5650}
+]

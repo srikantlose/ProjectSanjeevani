@@ -1,0 +1,10 @@
+[
+  {"id": "hosp_01", "name": "NIMHANS", "lat": 12.9430, "lon": 77.5960, "trauma_level": 1},
+  {"id": "hosp_02", "name": "St. John's Medical College Hospital", "lat": 12.9293, "lon": 77.6198, "trauma_level": 1},
+  {"id": "hosp_03", "name": "Victoria Hospital", "lat": 12.9628, "lon": 77.5750, "trauma_level": 1},
+  {"id": "hosp_04", "name": "Bowring & Lady Curzon Hospital", "lat": 12.9857, "lon": 77.6057, "trauma_level": 2},
+  {"id": "hosp_05", "name": "Manipal Hospital Old Airport Road", "lat": 12.9592, "lon": 77.6480, "trauma_level": 1},
+  {"id": "hosp_06", "name": "Fortis Hospital Bannerghatta Road", "lat": 12.8909, "lon": 77.5970, "trauma_level": 2},
+  {"id": "hosp_07", "name": "Sparsh Hospital Infantry Road", "lat": 12.9832, "lon": 77.6006, "trauma_level": 2},
+  {"id": "hosp_08", "name": "MS Ramaiah Memorial Hospital", "lat": 13.0311, "lon": 77.5650, "trauma_level": 2}
+]

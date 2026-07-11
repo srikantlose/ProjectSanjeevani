@@ -1,0 +1,242 @@
+[
+  {
+    "id": "jct_001",
+    "name": "Signal jct_001",
+    "lat": 12.917209,
+    "lon": 77.5858603
+  },
+  {
+    "id": "jct_002",
+    "name": "Signal jct_002",
+    "lat": 12.9538564,
+    "lon": 77.5913354
+  },
+  {
+    "id": "jct_003",
+    "name": "Signal jct_003",
+    "lat": 12.957309,
+    "lon": 77.5696091
+  },
+  {
+    "id": "jct_004",
+    "name": "Signal jct_004",
+    "lat": 12.9869588,
+    "lon": 77.6478913
+  },
+  {
+    "id": "jct_005",
+    "name": "Signal jct_005",
+    "lat": 12.9681517,
+    "lon": 77.5873435
+  },
+  {
+    "id": "jct_006",
+    "name": "Signal jct_006",
+    "lat": 12.9345385,
+    "lon": 77.6123203
+  },
+  {
+    "id": "jct_007",
+    "name": "Avarekalu Circle",
+    "lat": 12.9273387,
+    "lon": 77.5769552
+  },
+  {
+    "id": "jct_008",
+    "name": "Signal jct_008",
+    "lat": 13.0171281,
+    "lon": 77.5605923
+  },
+  {
+    "id": "jct_009",
+    "name": "Signal jct_009",
+    "lat": 13.0101366,
+    "lon": 77.5905814
+  },
+  {
+    "id": "jct_010",
+    "name": "Signal jct_010",
+    "lat": 13.030284,
+    "lon": 77.621044
+  },
+  {
+    "id": "jct_011",
+    "name": "Signal jct_011",
+    "lat": 12.9727661,
+    "lon": 77.5816763
+  },
+  {
+    "id": "jct_012",
+    "name": "Signal jct_012",
+    "lat": 12.916377,
+    "lon": 77.632469
+  },
+  {
+    "id": "jct_013",
+    "name": "Signal jct_013",
+    "lat": 12.9799466,
+    "lon": 77.5709964
+  },
+  {
+    "id": "jct_014",
+    "name": "Signal jct_014",
+    "lat": 12.9575946,
+    "lon": 77.5738004
+  },
+  {
+    "id": "jct_015",
+    "name": "Signal jct_015",
+    "lat": 12.957379,
+    "lon": 77.5521321
+  },
+  {
+    "id": "jct_016",
+    "name": "Signal jct_016",
+    "lat": 12.9650689,
+    "lon": 77.6099455
+  },
+  {
+    "id": "jct_017",
+    "name": "Signal jct_017",
+    "lat": 12.9424494,
+    "lon": 77.6225928
+  },
+  {
+    "id": "jct_018",
+    "name": "Signal jct_018",
+    "lat": 12.9742918,
+    "lon": 77.6112676
+  },
+  {
+    "id": "jct_019",
+    "name": "Signal jct_019",
+    "lat": 12.936466,
+    "lon": 77.5803092
+  },
+  {
+    "id": "jct_020",
+    "name": "Signal jct_020",
+    "lat": 12.9846845,
+    "lon": 77.5823365
+  },
+  {
+    "id": "jct_021",
+    "name": "Signal jct_021",
+    "lat": 12.9850983,
+    "lon": 77.5720638
+  },
+  {
+    "id": "jct_022",
+    "name": "Signal jct_022",
+    "lat": 12.8895987,
+    "lon": 77.5633357
+  },
+  {
+    "id": "jct_023",
+    "name": "Signal jct_023",
+    "lat": 12.9641751,
+    "lon": 77.5695538
+  },
+  {
+    "id": "jct_024",
+    "name": "Signal jct_024",
+    "lat": 12.9805134,
+    "lon": 77.577043
+  },
+  {
+    "id": "jct_025",
+    "name": "Signal jct_025",
+    "lat": 13.0347143,
+    "lon": 77.5573607
+  },
+  {
+    "id": "jct_026",
+    "name": "Signal jct_026",
+    "lat": 12.9307704,
+    "lon": 77.5802834
+  },
+  {
+    "id": "jct_027",
+    "name": "Signal jct_027",
+    "lat": 12.9064405,
+    "lon": 77.5854734
+  },
+  {
+    "id": "jct_028",
+    "name": "Signal jct_028",
+    "lat": 12.9722221,
+    "lon": 77.5941421
+  },
+  {
+    "id": "jct_029",
+    "name": "Signal jct_029",
+    "lat": 12.9240761,
+    "lon": 77.6518602
+  },
+  {
+    "id": "jct_030",
+    "name": "Signal jct_030",
+    "lat": 12.9871282,
+    "lon": 77.648087
+  },
+  {
+    "id": "jct_031",
+    "name": "Signal jct_031",
+    "lat": 12.9061379,
+    "lon": 77.5949917
+  },
+  {
+    "id": "jct_032",
+    "name": "Signal jct_032",
+    "lat": 12.8892473,
+    "lon": 77.6402197
+  },
+  {
+    "id": "jct_033",
+    "name": "Signal jct_033",
+    "lat": 12.9634942,
+    "lon": 77.5892656
+  },
+  {
+    "id": "jct_034",
+    "name": "Signal jct_034",
+    "lat": 13.0317379,
+    "lon": 77.6358464
+  },
+  {
+    "id": "jct_035",
+    "name": "Signal jct_035",
+    "lat": 12.9586617,
+    "lon": 77.5776465
+  },
+  {
+    "id": "jct_036",
+    "name": "Signal jct_036",
+    "lat": 12.9437981,
+    "lon": 77.5800905
+  },
+  {
+    "id": "jct_037",
+    "name": "Signal jct_037",
+    "lat": 13.0186026,
+    "lon": 77.557431
+  },
+  {
+    "id": "jct_038",
+    "name": "Signal jct_038",
+    "lat": 13.0228247,
+    "lon": 77.637018
+  },
+  {
+    "id": "jct_039",
+    "name": "Signal jct_039",
+    "lat": 12.9461813,
+    "lon": 77.5880004
+  },
+  {
+    "id": "jct_040",
+    "name": "Signal jct_040",
+    "lat": 13.0319335,
+    "lon": 77.6217622
+  }
+]
