@@ -1,0 +1,7 @@
+camera_id: vtest_highway_test
+mode: highway
+source_video: tests/fixtures/vtest.avi
+location: {lat: 12.9716, lon: 77.5946, label: "vtest synthetic highway"}
+rois:
+  live_lane: [[0, 0], [768, 0], [768, 576], [0, 576]]
+overrides: {}

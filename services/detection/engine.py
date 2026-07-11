@@ -1,22 +1,26 @@
-"""Detection engine skeleton: video source -> detector -> track history, with an
-optional debug overlay for visually verifying detection/tracking during development
-(plan.md §7.1, E1-T4). Signal fusion, severity, and evidence writing are wired in
-starting at E4 — this module currently only exercises E1's building blocks.
+"""Detection engine: the full per-frame pipeline (plan.md §7.1, §7.8).
+
+video -> detector+tracker -> signals -> fusion -> severity -> evidence -> emitter
 """
 
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 
 import cv2
 import numpy as np
 
+from services.detection.config import load_engine_config
 from services.detection.detector import Detector
+from services.detection.emitter import Emitter
+from services.detection.evidence import EvidenceBuffer
+from services.detection.fusion import FusionEngine, IncidentCandidate
+from services.detection.severity import assess as assess_severity
+from services.detection.signal_factory import build_signals
 from services.detection.tracker_ctx import FrameContext, TrackHistoryBuilder
 from services.detection.video_source import VideoSource
 
-VELOCITY_SCALE = 3.0  # visual scale factor so velocity vectors are visible in the overlay
+VELOCITY_SCALE = 3.0  # visual scale factor so velocity vectors are visible in the debug overlay
 
 
 def draw_debug_overlay(image: np.ndarray, ctx: FrameContext) -> np.ndarray:
@@ -38,67 +42,147 @@ def draw_debug_overlay(image: np.ndarray, ctx: FrameContext) -> np.ndarray:
     return annotated
 
 
+def build_payload(candidate: IncidentCandidate, cfg) -> dict:
+    return {
+        "id": candidate.incident_id,
+        "camera_id": candidate.camera_id,
+        "mode": candidate.mode,
+        "severity": candidate.severity,
+        "severity_reasons": candidate.severity_reasons,
+        "signals": candidate.signals,
+        "reasons": candidate.reasons,
+        "location": {
+            "lat": cfg.camera.location.lat,
+            "lon": cfg.camera.location.lon,
+            "label": cfg.camera.location.label,
+        },
+        "evidence": {
+            "clip_path": candidate.evidence_clip_path,
+            "snapshot_path": candidate.evidence_snapshot_path,
+        },
+        "detected_at": candidate.detected_at,
+    }
+
+
 def run(
-    video_path: str,
-    target_fps: float = 10.0,
-    speed_factor: float = 1.0,
+    camera_yaml: str,
+    headless: bool = False,
     debug_overlay: bool = False,
-    output_path: str | None = None,
-    weights: str = "models/yolo11s.pt",
+    speed_factor: float | None = None,
     max_frames: int | None = None,
-) -> str | None:
-    """Runs the E1 pipeline over `video_path`. Returns the debug overlay output
-    path if `debug_overlay` is set, else None."""
-    detector = Detector(weights=weights)
+    api_base_url: str = "http://localhost:8000",
+    debug_overlay_output: str | None = None,
+    evidence_out_root: str = "data/clips",
+    queue_path: str = "data/queue/pending_incidents.jsonl",
+    start_retry_thread: bool = True,
+) -> list[IncidentCandidate]:
+    cfg = load_engine_config(camera_yaml)
+    if speed_factor is not None:
+        cfg.processing.speed_factor = speed_factor
+
+    device = None if cfg.detector.device == "auto" else cfg.detector.device
+    detector = Detector(
+        weights=cfg.detector.weights,
+        imgsz=cfg.detector.imgsz,
+        conf=cfg.detector.conf,
+        iou=cfg.detector.iou,
+        classes=tuple(cfg.detector.classes),
+        device=device,
+    )
     history = TrackHistoryBuilder()
-    src = VideoSource(video_path, target_fps=target_fps, speed_factor=speed_factor)
+    signals = build_signals(cfg)
+    fusion = FusionEngine(cfg.fusion, camera_id=cfg.camera.camera_id, mode=cfg.camera.mode)
+    evidence_buffer = EvidenceBuffer(target_fps=cfg.processing.target_fps, out_root=evidence_out_root)
+    emitter = None if headless else Emitter(base_url=api_base_url, queue_path=queue_path, start_retry_thread=start_retry_thread)
 
-    writer = None
-    out_path = None
-    if debug_overlay:
-        out_path = output_path or str(Path(video_path).with_name(Path(video_path).stem + "_debug.mp4"))
-        fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    src = VideoSource(
+        cfg.camera.source_video, target_fps=cfg.processing.target_fps, speed_factor=cfg.processing.speed_factor
+    )
 
+    overlay_writer = None
+    overlay_path = None
+    frame_size_configured = False
+    results_out: list[IncidentCandidate] = []
     frame_count = 0
+
     for frame in src:
-        detections = detector.track(frame.image)
-        ctx = history.update(frame_index=frame.index, timestamp_s=frame.timestamp_s, detections=detections)
+        evidence_buffer.push(frame)
+
+        for signal in signals:
+            signal.set_current_frame_image(frame.image)
+
+        ctx = history.update(frame_index=frame.index, timestamp_s=frame.timestamp_s, detections=detector.track(frame.image))
+
+        if not frame_size_configured:
+            h, w = frame.image.shape[:2]
+            fusion.configure_frame_size(w, h)
+            frame_size_configured = True
+
+        results = {signal.name: signal.update(ctx) for signal in signals}
+
+        candidate = fusion.update(ctx, results)
+        if candidate is not None:
+            severity, severity_reasons = assess_severity(results, ctx)
+            candidate.severity = severity
+            candidate.severity_reasons = severity_reasons
+            evidence_buffer.start_capture(candidate, ctx)
+            print(
+                f"[{frame.timestamp_s:.1f}s] candidate {candidate.incident_id} "
+                f"severity={severity} signals={candidate.signals}"
+            )
+
+        for completed_candidate, clip_path, snapshot_path in evidence_buffer.tick(frame):
+            completed_candidate.evidence_clip_path = clip_path
+            completed_candidate.evidence_snapshot_path = snapshot_path
+            if emitter is not None:
+                emitter.emit(build_payload(completed_candidate, cfg))
+            results_out.append(completed_candidate)
 
         if debug_overlay:
             annotated = draw_debug_overlay(frame.image, ctx)
-            if writer is None:
+            if overlay_writer is None:
+                overlay_path = debug_overlay_output or f"{cfg.camera.camera_id}_debug.mp4"
                 h, w = annotated.shape[:2]
-                writer = cv2.VideoWriter(out_path, fourcc, target_fps, (w, h))
-            writer.write(annotated)
+                overlay_writer = cv2.VideoWriter(overlay_path, cv2.VideoWriter_fourcc(*"mp4v"), cfg.processing.target_fps, (w, h))
+            overlay_writer.write(annotated)
 
         frame_count += 1
         if max_frames is not None and frame_count >= max_frames:
             break
 
-    if writer is not None:
-        writer.release()
-        print(f"wrote debug overlay video: {out_path} ({frame_count} frames)")
+    for completed_candidate, clip_path, snapshot_path in evidence_buffer.flush():
+        completed_candidate.evidence_clip_path = clip_path
+        completed_candidate.evidence_snapshot_path = snapshot_path
+        if emitter is not None:
+            emitter.emit(build_payload(completed_candidate, cfg))
+        results_out.append(completed_candidate)
 
-    return out_path
+    if overlay_writer is not None:
+        overlay_writer.release()
+        print(f"wrote debug overlay video: {overlay_path} ({frame_count} frames)")
+
+    return results_out
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Sanjeevani detection engine (E1 skeleton)")
-    parser.add_argument("video_path")
-    parser.add_argument("--target-fps", type=float, default=10.0)
-    parser.add_argument("--speed-factor", type=float, default=1.0)
+    parser = argparse.ArgumentParser(description="Sanjeevani detection engine")
+    parser.add_argument("--camera", required=True, help="path to a camera YAML (configs/cameras/*.yaml)")
+    parser.add_argument("--headless", action="store_true", help="skip HTTP emission; just return/print candidates")
     parser.add_argument("--debug-overlay", action="store_true")
-    parser.add_argument("--output", default=None)
-    parser.add_argument("--weights", default="models/yolo11s.pt")
+    parser.add_argument("--speed-factor", type=float, default=None)
+    parser.add_argument("--api-base-url", default="http://localhost:8000")
+    parser.add_argument("--max-frames", type=int, default=None)
     args = parser.parse_args()
-    run(
-        args.video_path,
-        target_fps=args.target_fps,
-        speed_factor=args.speed_factor,
+
+    candidates = run(
+        args.camera,
+        headless=args.headless,
         debug_overlay=args.debug_overlay,
-        output_path=args.output,
-        weights=args.weights,
+        speed_factor=args.speed_factor,
+        max_frames=args.max_frames,
+        api_base_url=args.api_base_url,
     )
+    print(f"engine run complete: {len(candidates)} candidate(s)")
 
 
 if __name__ == "__main__":

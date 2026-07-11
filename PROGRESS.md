@@ -36,7 +36,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 - [x] E4-T2 — Severity module
 - [x] E4-T3 — Evidence buffer (ring buffer, clip + snapshot, ffmpeg re-encode w/ fallback)
 - [x] E4-T4 — Emitter with offline queue
-- [ ] E4-T5 — Engine integration (vtest highway config acceptance, no new data needed)
+- [x] E4-T5 — Engine integration (vtest highway config acceptance, no new data needed)
 
 ## E5 — API Core
 - [ ] E5-T1 — App + models + CORS + seed-on-startup
@@ -86,6 +86,8 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 
 *(Append one entry per deviation from the plan — new threshold values, substituted datasets, skipped stretch items, etc. Keep entries short: task ID, what changed, why.)*
 
+- E4-T5 — `set_current_frame_image` had only ever been defined on `RiderDownSignal` (added ad hoc in E3-T3), not on the shared `Signal` base class as plan.md §7.2 specifies ("base-class no-op hook"). Wiring the engine to call it on every signal (`CollisionSignal`, `StationarySignal`, `FlowSignal`, `CrowdSignal` included) raised `AttributeError` immediately — caught by the new engine-integration tests. Fixed by moving the no-op to `Signal.set_current_frame_image` in `signals/base.py` and removing the now-redundant override from `RiderDownSignal` (it inherits the no-op; only `PoseConfirmedRiderDownSignal` still overrides it meaningfully).
+- E4-T5 — `run()` gained three parameters beyond the plan.md §7.8 signature to keep tests from writing into the real project directories: `evidence_out_root` (default `"data/clips"`), `queue_path` (default `"data/queue/pending_incidents.jsonl"`), `start_retry_thread` (default `True`, threaded to `Emitter`). Defaults match the spec exactly for real CLI usage; tests pass tmp_path-based overrides. Verified the literal CLI acceptance check for real: `python -m services.detection.engine --camera configs/cameras/vtest_highway_test.yaml --headless --speed-factor 20` produced 4 candidates, all with `stationary` in `[0.85, 0.9]`, each with a decodable `evidence.mp4` + `snapshot.jpg` under `data/clips/` (cleaned up after verifying, since that directory is gitignored/regenerated).
 - E4-T3 — ffmpeg is already installed on this machine at `/c/ffmpeg/ffmpeg` (on PATH), so no `winget install Gyan.FFmpeg` step was needed. Both the ffmpeg-present and ffmpeg-absent (monkeypatched `shutil.which`) code paths in `EvidenceBuffer` were exercised and pass.
 - E3-T3 — `_default_pose_checker`'s keypoint math (`np.linalg.norm`, `np.dot`, `np.array` vertical) failed on `keypoints.xy[0]` directly: Ultralytics returns keypoints as a CUDA tensor when the pose model runs on GPU, and numpy ops can't consume a CUDA tensor without an explicit transfer. Fixed with `keypoints.xy[0].cpu().numpy()`. Caught immediately by the real-model smoke test (`test_default_pose_checker_smoke_on_real_upright_person`) — exactly the kind of bug synthetic-only fixtures can't catch, which is why that smoke test exists per plan.md §7.2/E3-T3.
 - 2026-07-08 — **Plan rev. 2**: full codebase review; restructured E3-T3→E10 with detailed contracts (config system E4-T0, engine integration E4-T5, CORS, pinned seed data, minimal-UI E7, ROI tool task E8-T0, user-checklist data policy). User decisions captured: datasets via script+checklist; occluded demo clip = placeholder now/staged later; near-miss study on public footage. Occluded-clip gate moved from E3-T3 to E8-T3 (GATE-A) since the footage only exists after E8-T1.

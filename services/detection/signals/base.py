@@ -20,3 +20,7 @@ class Signal:
     def update(self, frame_ctx: FrameContext) -> SignalResult:
         """Called once per processed frame. Must return a SignalResult."""
         raise NotImplementedError
+
+    def set_current_frame_image(self, image) -> None:
+        """No-op hook; the engine calls this on every signal every frame before
+        `update()`. Only PoseConfirmedRiderDownSignal actually uses the image."""

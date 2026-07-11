@@ -106,10 +106,6 @@ class RiderDownSignal(Signal):
             f"near vehicle {vehicle.track_id} impact signature at t={event_ts:.1f}s"
         )
 
-    def set_current_frame_image(self, image) -> None:
-        """No-op hook; overridden by PoseConfirmedRiderDownSignal (E3-T3), which
-        needs the raw frame to crop and run pose confirmation on."""
-
     def _on_primary_active(self, person: TrackState, ts: float) -> None:
         """No-op hook called once per frame for any person currently past the
         primary aspect+duration gate; overridden by PoseConfirmedRiderDownSignal
