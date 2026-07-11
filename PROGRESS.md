@@ -35,7 +35,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 - [x] E4-T1 — Fusion module (weighted sum, overrides, cooldown grid, IncidentCandidate)
 - [x] E4-T2 — Severity module
 - [x] E4-T3 — Evidence buffer (ring buffer, clip + snapshot, ffmpeg re-encode w/ fallback)
-- [ ] E4-T4 — Emitter with offline queue
+- [x] E4-T4 — Emitter with offline queue
 - [ ] E4-T5 — Engine integration (vtest highway config acceptance, no new data needed)
 
 ## E5 — API Core
