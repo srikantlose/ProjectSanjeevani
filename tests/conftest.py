@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import sessionmaker
 
 from services.detection.detector import Detection
 from services.detection.tracker_ctx import FrameContext, TrackHistoryBuilder
@@ -65,3 +67,30 @@ def frame_context_builder():
         return contexts
 
     return _build
+
+
+@pytest.fixture
+def client(tmp_path):
+    """FastAPI TestClient wired to an isolated tmp-path SQLite DB via dependency
+    override (see PROGRESS.md E5-T1 deviation note for why this is used instead
+    of the SANJEEVANI_DB_PATH env var). `client.test_session_local` is exposed so
+    tests can open a direct DB session to assert on rows the API doesn't expose."""
+    from services.api.db import Base, get_db, make_engine
+    from services.api.main import app
+
+    engine = make_engine(str(tmp_path / "test.db"))
+    Base.metadata.create_all(bind=engine)
+    test_session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    def override_get_db():
+        db = test_session_local()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+    with TestClient(app) as c:
+        c.test_session_local = test_session_local
+        yield c
+    app.dependency_overrides.clear()

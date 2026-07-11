@@ -1,9 +1,3 @@
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import sessionmaker
-
-from services.api.db import Base, get_db, make_engine
-from services.api.main import app
 from services.api.models import IncidentSignal
 
 CANDIDATE_PAYLOAD = {
@@ -24,26 +18,6 @@ CANDIDATE_PAYLOAD = {
     },
     "detected_at": "2026-07-08T10:15:30.100Z",
 }
-
-
-@pytest.fixture
-def client(tmp_path):
-    engine = make_engine(str(tmp_path / "test.db"))
-    Base.metadata.create_all(bind=engine)
-    TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-    def override_get_db():
-        db = TestSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
-
-    app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as c:
-        c.test_session_local = TestSessionLocal
-        yield c
-    app.dependency_overrides.clear()
 
 
 def test_post_candidate_persists_and_creates_signal_rows(client):

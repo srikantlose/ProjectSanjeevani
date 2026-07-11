@@ -1,7 +1,4 @@
-"""Incident candidate ingestion + list/detail endpoints (plan.md §8.1, §8.2).
-
-WebSocket broadcasting on candidate creation is wired in on top of this in E5-T3.
-"""
+"""Incident candidate ingestion + list/detail endpoints (plan.md §8.1, §8.2)."""
 
 from __future__ import annotations
 
@@ -13,6 +10,7 @@ from sqlalchemy.orm import Session
 from services.api.db import get_db
 from services.api.models import Incident, IncidentSignal
 from services.api.schemas import CandidateSubmission
+from services.api.ws import manager
 
 router = APIRouter()
 
@@ -37,7 +35,7 @@ def incident_to_payload(incident: Incident) -> dict:
 
 
 @router.post("/api/incidents/candidate", status_code=201)
-def create_candidate(body: CandidateSubmission, db: Session = Depends(get_db)):
+async def create_candidate(body: CandidateSubmission, db: Session = Depends(get_db)):
     existing = db.get(Incident, body.id)
     if existing is not None:
         raise HTTPException(status_code=409, detail=f"incident {body.id} already exists")
@@ -62,6 +60,8 @@ def create_candidate(body: CandidateSubmission, db: Session = Depends(get_db)):
     for name, score in body.signals.items():
         db.add(IncidentSignal(incident_id=incident.id, signal_name=name, score=score))
     db.commit()
+
+    await manager.broadcast("incident.new", incident_to_payload(incident))
 
     return {"id": incident.id}
 

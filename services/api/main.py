@@ -11,6 +11,7 @@ from services.api import models  # noqa: F401 -- registers ORM models on Base be
 from services.api.db import Base, SessionLocal, engine
 from services.api.routers import ambulances, hospitals, incidents
 from services.api.seed import load_seed_data
+from services.api.ws import router as ws_router
 
 
 @asynccontextmanager
@@ -36,3 +37,4 @@ app.add_middleware(
 app.include_router(hospitals.router)
 app.include_router(ambulances.router)
 app.include_router(incidents.router)
+app.include_router(ws_router)
