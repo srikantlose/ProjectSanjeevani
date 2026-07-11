@@ -34,7 +34,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 - [x] E4-T0 — Config system (config.py, signal_factory.py, mode YAMLs, signal kwargs refactor, pytest.ini)
 - [x] E4-T1 — Fusion module (weighted sum, overrides, cooldown grid, IncidentCandidate)
 - [x] E4-T2 — Severity module
-- [ ] E4-T3 — Evidence buffer (ring buffer, clip + snapshot, ffmpeg re-encode w/ fallback)
+- [x] E4-T3 — Evidence buffer (ring buffer, clip + snapshot, ffmpeg re-encode w/ fallback)
 - [ ] E4-T4 — Emitter with offline queue
 - [ ] E4-T5 — Engine integration (vtest highway config acceptance, no new data needed)
 
@@ -86,6 +86,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 
 *(Append one entry per deviation from the plan — new threshold values, substituted datasets, skipped stretch items, etc. Keep entries short: task ID, what changed, why.)*
 
+- E4-T3 — ffmpeg is already installed on this machine at `/c/ffmpeg/ffmpeg` (on PATH), so no `winget install Gyan.FFmpeg` step was needed. Both the ffmpeg-present and ffmpeg-absent (monkeypatched `shutil.which`) code paths in `EvidenceBuffer` were exercised and pass.
 - E3-T3 — `_default_pose_checker`'s keypoint math (`np.linalg.norm`, `np.dot`, `np.array` vertical) failed on `keypoints.xy[0]` directly: Ultralytics returns keypoints as a CUDA tensor when the pose model runs on GPU, and numpy ops can't consume a CUDA tensor without an explicit transfer. Fixed with `keypoints.xy[0].cpu().numpy()`. Caught immediately by the real-model smoke test (`test_default_pose_checker_smoke_on_real_upright_person`) — exactly the kind of bug synthetic-only fixtures can't catch, which is why that smoke test exists per plan.md §7.2/E3-T3.
 - 2026-07-08 — **Plan rev. 2**: full codebase review; restructured E3-T3→E10 with detailed contracts (config system E4-T0, engine integration E4-T5, CORS, pinned seed data, minimal-UI E7, ROI tool task E8-T0, user-checklist data policy). User decisions captured: datasets via script+checklist; occluded demo clip = placeholder now/staged later; near-miss study on public footage. Occluded-clip gate moved from E3-T3 to E8-T3 (GATE-A) since the footage only exists after E8-T1.
 - E3-T2 — Rider-down's vehicle-confirmation check originally re-tested "is the vehicle's velocity dropping *right now*" at the moment the 2s sustained-fall duration gate is satisfied — but that moment is, by construction, ~2s+ after the actual impact, so the live velocity-drop window (0.5s lookback) had long since gone quiet, and the signal never fired (caught by the acceptance test itself). Fixed by recording each vehicle's impact-signature timestamp once (`_vehicle_last_event_ts`) when a velocity-drop or aspect-change is observed, then checking that stored event time falls within `EVENT_CORRELATION_WINDOW_S=3.0`s of the person's fall onset (`lying_since`), rather than re-checking a live rolling window at confirmation time. Same class of timing bug as the E2-T2 collision-signal fix, now understood as a general pattern: any "confirm later" check needs to reference a stored event timestamp, not a live short-window recheck.
