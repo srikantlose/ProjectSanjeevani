@@ -32,7 +32,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 
 ## E4 — Fusion + Evidence + Engine wiring
 - [x] E4-T0 — Config system (config.py, signal_factory.py, mode YAMLs, signal kwargs refactor, pytest.ini)
-- [ ] E4-T1 — Fusion module (weighted sum, overrides, cooldown grid, IncidentCandidate)
+- [x] E4-T1 — Fusion module (weighted sum, overrides, cooldown grid, IncidentCandidate)
 - [ ] E4-T2 — Severity module
 - [ ] E4-T3 — Evidence buffer (ring buffer, clip + snapshot, ffmpeg re-encode w/ fallback)
 - [ ] E4-T4 — Emitter with offline queue
