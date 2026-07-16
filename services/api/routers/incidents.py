@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from services.api.db import get_db
-from services.api.models import Incident, IncidentSignal
+from services.api.models import Hospital, Incident, IncidentSignal
 from services.api.schemas import CandidateSubmission, VerifyRequest
 from services.api.sim.ambulance import dispatch_incident
 from services.api.ws import manager
@@ -16,8 +16,29 @@ from services.api.ws import manager
 router = APIRouter()
 
 
-def incident_to_payload(incident: Incident) -> dict:
+def _dispatch_payload(incident: Incident, db: Session) -> dict | None:
+    """Same shape as the DISPATCHED WS broadcast (plan.md §8.2.2), so a client
+    that (re)loads via REST after a dispatch already happened -- e.g. a page
+    refresh mid-demo -- still gets the ambulance/hospital/route info, not just
+    clients that were connected at the moment it was originally broadcast."""
+    dispatches = sorted(incident.dispatches, key=lambda d: d.created_at)
+    if not dispatches:
+        return None
+    dispatch = dispatches[-1]
+    hospital = db.get(Hospital, dispatch.hospital_id)
+    route = json.loads(dispatch.route_to_scene_geojson)["coordinates"] if dispatch.route_to_scene_geojson else []
     return {
+        "dispatch_id": dispatch.id,
+        "ambulance_id": dispatch.ambulance_id,
+        "hospital_id": dispatch.hospital_id,
+        "hospital_name": hospital.name if hospital else None,
+        "eta_seconds": dispatch.eta_seconds_initial,
+        "route": route,
+    }
+
+
+def incident_to_payload(incident: Incident, db: Session) -> dict:
+    payload = {
         "id": incident.id,
         "camera_id": incident.camera_id,
         "mode": incident.mode,
@@ -33,6 +54,10 @@ def incident_to_payload(incident: Incident) -> dict:
         },
         "detected_at": incident.detected_at,
     }
+    dispatch = _dispatch_payload(incident, db)
+    if dispatch is not None:
+        payload["dispatch"] = dispatch
+    return payload
 
 
 @router.post("/api/incidents/candidate", status_code=201)
@@ -62,7 +87,7 @@ async def create_candidate(body: CandidateSubmission, db: Session = Depends(get_
         db.add(IncidentSignal(incident_id=incident.id, signal_name=name, score=score))
     db.commit()
 
-    await manager.broadcast("incident.new", incident_to_payload(incident))
+    await manager.broadcast("incident.new", incident_to_payload(incident, db))
 
     return {"id": incident.id}
 
@@ -70,7 +95,7 @@ async def create_candidate(body: CandidateSubmission, db: Session = Depends(get_
 @router.get("/api/incidents")
 def list_incidents(db: Session = Depends(get_db)):
     rows = db.query(Incident).order_by(Incident.detected_at.desc()).all()
-    return [incident_to_payload(r) for r in rows]
+    return [incident_to_payload(r, db) for r in rows]
 
 
 @router.get("/api/incidents/{incident_id}")
@@ -78,7 +103,7 @@ def get_incident(incident_id: str, db: Session = Depends(get_db)):
     incident = db.get(Incident, incident_id)
     if incident is None:
         raise HTTPException(status_code=404, detail="incident not found")
-    return incident_to_payload(incident)
+    return incident_to_payload(incident, db)
 
 
 @router.post("/api/incidents/{incident_id}/verify")

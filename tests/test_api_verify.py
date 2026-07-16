@@ -51,6 +51,27 @@ def test_confirm_transitions_to_dispatched_and_broadcasts_twice(client):
     assert detail.json()["status"] == "DISPATCHED"
 
 
+def test_dispatch_info_survives_a_rest_reload_after_confirm(client):
+    # Regression: GET /api/incidents(/{id}) must include the dispatch object once one
+    # exists, not just the one-time WS broadcast at the moment of confirmation --
+    # otherwise a client that (re)loads via REST after the fact (e.g. a page refresh
+    # mid-demo) has no way to know an ambulance/route/hospital were ever assigned.
+    client.post("/api/incidents/candidate", json=CANDIDATE_PAYLOAD)
+    client.post(f"/api/incidents/{CANDIDATE_PAYLOAD['id']}/verify", json={"decision": "confirm"})
+
+    detail = client.get(f"/api/incidents/{CANDIDATE_PAYLOAD['id']}").json()
+    assert "dispatch" in detail
+    dispatch = detail["dispatch"]
+    assert dispatch["dispatch_id"]
+    assert dispatch["ambulance_id"]
+    assert dispatch["hospital_id"]
+    assert dispatch["hospital_name"]
+    assert isinstance(dispatch["route"], list) and len(dispatch["route"]) > 1
+
+    listing = client.get("/api/incidents").json()
+    assert "dispatch" in listing[0]
+
+
 def test_reverify_after_confirm_returns_409(client):
     client.post("/api/incidents/candidate", json=CANDIDATE_PAYLOAD)
     client.post(f"/api/incidents/{CANDIDATE_PAYLOAD['id']}/verify", json={"decision": "confirm"})
