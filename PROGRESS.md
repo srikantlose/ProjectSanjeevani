@@ -54,7 +54,7 @@ Epics marked **[GATE]** must fully pass their gate task's acceptance check befor
 
 ## E7 — Dashboard (MINIMAL UI ONLY — no styling/design; that is E10-T5)
 - [x] E7-T1 — Shell, router, types, store, ws, api helpers
-- [ ] E7-T2 — FeedGrid + IncidentFeed
+- [x] E7-T2 — FeedGrid + IncidentFeed
 - [ ] E7-T3 — WhyPanel + VerifyModal
 - [ ] E7-T4 — Dispatch map + ambulance tween + route line
 - [ ] E7-T5 — Corridor circles + EtaBanner + Stopwatch
