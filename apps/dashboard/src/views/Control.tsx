@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import FeedGrid from '../components/FeedGrid'
+import IncidentDetail from '../components/IncidentDetail'
 import IncidentFeed from '../components/IncidentFeed'
 import { useStore } from '../store'
 
@@ -7,13 +9,15 @@ const SCENARIO_FILENAMES = ['scenario1_junction.mp4', 'scenario2_highway.mp4']
 
 function Control() {
   const wsStatus = useStore((s) => s.wsStatus)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   return (
     <div className="flex flex-col gap-4 p-4">
       <h1>Control Room</h1>
       <p>ws: {wsStatus}</p>
       <FeedGrid filenames={SCENARIO_FILENAMES} />
-      <IncidentFeed />
+      <IncidentFeed onSelect={setSelectedId} />
+      {selectedId && <IncidentDetail incidentId={selectedId} />}
     </div>
   )
 }
