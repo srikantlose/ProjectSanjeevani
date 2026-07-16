@@ -74,13 +74,22 @@ def client(tmp_path):
     """FastAPI TestClient wired to an isolated tmp-path SQLite DB via dependency
     override (see PROGRESS.md E5-T1 deviation note for why this is used instead
     of the SANJEEVANI_DB_PATH env var). `client.test_session_local` is exposed so
-    tests can open a direct DB session to assert on rows the API doesn't expose."""
+    tests can open a direct DB session to assert on rows the API doesn't expose.
+    Seed data (hospitals/ambulances/junctions) is loaded, same as production
+    startup, so confirm->dispatch flows work end-to-end in tests."""
     from services.api.db import Base, get_db, make_engine
     from services.api.main import app
+    from services.api.seed import load_seed_data
 
     engine = make_engine(str(tmp_path / "test.db"))
     Base.metadata.create_all(bind=engine)
     test_session_local = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    seed_db = test_session_local()
+    try:
+        load_seed_data(seed_db)
+    finally:
+        seed_db.close()
 
     def override_get_db():
         db = test_session_local()

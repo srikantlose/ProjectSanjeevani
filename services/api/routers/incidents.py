@@ -100,11 +100,13 @@ async def verify_incident(incident_id: str, body: VerifyRequest, db: Session = D
         db.commit()
         await manager.broadcast("incident.updated", {"id": incident.id, "status": incident.status})
 
-        dispatch_incident(incident)  # E5-T4 stub: logs only; E6-T3 makes this real
+        dispatch_dict = dispatch_incident(incident, db)
 
         incident.status = "DISPATCHED"
         db.commit()
-        await manager.broadcast("incident.updated", {"id": incident.id, "status": incident.status})
+        await manager.broadcast(
+            "incident.updated", {"id": incident.id, "status": incident.status, "dispatch": dispatch_dict}
+        )
 
         return {"id": incident.id, "status": incident.status}
 
