@@ -15,6 +15,7 @@ models/
 
 # Data - raw and generated, not checked in
 data/raw/
+data/processed/
 data/tile_cache/
 data/clips/
 data/queue/

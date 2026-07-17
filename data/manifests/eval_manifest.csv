@@ -1,1 +1,19 @@
 clip_path,scenario_type,gt_label,gt_event_time_s,camera_config,notes
+data/processed/ccd_crash_0001.mp4,city_collision,1,4.0,configs/cameras/junction_cam.yaml,car-car T-bone at intersection; dashcam framing not CCTV
+data/processed/ccd_crash_0004.mp4,city_collision,1,4.1,configs/cameras/junction_cam.yaml,rear-end collision; dashcam framing not CCTV
+data/processed/ccd_crash_0005.mp4,city_collision,1,4.1,configs/cameras/junction_cam.yaml,car-car T-bone at intersection; dashcam framing not CCTV
+data/processed/ccd_normal_0001.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0002.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0003.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0004.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0005.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0006.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0007.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0008.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0009.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0010.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0011.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0012.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0013.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0014.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/ccd_normal_0015.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
