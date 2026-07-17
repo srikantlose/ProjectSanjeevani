@@ -43,6 +43,40 @@ def test_debug_overlay_produces_playable_annotated_video(tmp_path):
     assert found_overlay_pixel
 
 
+def test_debug_overlay_draws_configured_roi_polygon(tmp_path):
+    # Regression: draw_debug_overlay originally only drew track bboxes, never the
+    # camera's own rois/exclusion_zones/count_lines -- so a human reviewing a
+    # debug-overlay run (E8-T2's calibration acceptance check) had no way to
+    # actually see whether an ROI polygon lined up with the real road. vtest's
+    # camera config already declares a `live_lane` ROI covering the whole frame
+    # boundary, so its edges should be drawn in the ROI color (cyan, BGR (255,255,0)).
+    out_path = tmp_path / "debug_out.mp4"
+    run(
+        VTEST_CAMERA_YAML,
+        headless=True,
+        debug_overlay=True,
+        speed_factor=30.0,
+        max_frames=5,
+        debug_overlay_output=str(out_path),
+        evidence_out_root=str(tmp_path / "clips"),
+    )
+
+    cap = cv2.VideoCapture(str(out_path))
+    assert cap.isOpened()
+    found_roi_pixel = False
+    while True:
+        ok, frame = cap.read()
+        if not ok:
+            break
+        roi_mask = np.all(frame == [255, 255, 0], axis=-1)
+        if roi_mask.any():
+            found_roi_pixel = True
+            break
+    cap.release()
+
+    assert found_roi_pixel
+
+
 def test_headless_run_fires_stationary_candidate_with_evidence(tmp_path):
     clips_root = tmp_path / "clips"
     candidates = run(

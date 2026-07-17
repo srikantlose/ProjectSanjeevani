@@ -10,7 +10,7 @@ import argparse
 import cv2
 import numpy as np
 
-from services.detection.config import load_engine_config
+from services.detection.config import CameraConfig, load_engine_config
 from services.detection.detector import Detector
 from services.detection.emitter import Emitter
 from services.detection.evidence import EvidenceBuffer
@@ -23,8 +23,23 @@ from services.detection.video_source import VideoSource
 VELOCITY_SCALE = 3.0  # visual scale factor so velocity vectors are visible in the debug overlay
 
 
-def draw_debug_overlay(image: np.ndarray, ctx: FrameContext) -> np.ndarray:
+def draw_debug_overlay(image: np.ndarray, ctx: FrameContext, camera: CameraConfig | None = None) -> np.ndarray:
     annotated = image.copy()
+
+    if camera is not None:
+        for name, polygon in camera.rois.items():
+            pts = np.array([[int(x), int(y)] for x, y in polygon], dtype=np.int32)
+            cv2.polylines(annotated, [pts], True, (255, 255, 0), 2)
+            cv2.putText(annotated, name, tuple(pts[0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1, cv2.LINE_AA)
+        for zone in camera.exclusion_zones:
+            pts = np.array([[int(x), int(y)] for x, y in zone.polygon], dtype=np.int32)
+            cv2.polylines(annotated, [pts], True, (0, 0, 255), 2)
+            cv2.putText(annotated, zone.name, tuple(pts[0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
+        for name, (p1, p2) in camera.count_lines.items():
+            pt1, pt2 = (int(p1[0]), int(p1[1])), (int(p2[0]), int(p2[1]))
+            cv2.line(annotated, pt1, pt2, (255, 0, 255), 2)
+            cv2.putText(annotated, name, pt1, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 255), 1, cv2.LINE_AA)
+
     for track in ctx.tracks.values():
         x1, y1, x2, y2 = (int(v) for v in track.bbox)
         cv2.rectangle(annotated, (x1, y1), (x2, y2), (0, 255, 0), 2)
@@ -139,7 +154,7 @@ def run(
             results_out.append(completed_candidate)
 
         if debug_overlay:
-            annotated = draw_debug_overlay(frame.image, ctx)
+            annotated = draw_debug_overlay(frame.image, ctx, cfg.camera)
             if overlay_writer is None:
                 overlay_path = debug_overlay_output or f"{cfg.camera.camera_id}_debug.mp4"
                 h, w = annotated.shape[:2]

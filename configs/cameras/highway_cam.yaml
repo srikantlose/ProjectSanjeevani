@@ -1,0 +1,12 @@
+# PLACEHOLDER source_video pending E8-T1 real footage (see docs/data_checklist.md
+# and PROGRESS.md's E8-T2 deviation note). camera_id/mode/location are the real,
+# final demo values from plan.md; only source_video + rois need to change once
+# the real highway stationary-vehicle clip lands -- swap is source_video + a
+# manifest row, nothing structural.
+camera_id: highway_cam
+mode: highway
+source_video: tests/fixtures/vtest.avi
+location: {lat: 13.0358, lon: 77.5970, label: "Hebbal flyover approach (NH-44)"}
+rois:
+  live_lane: [[0, 0], [768, 0], [768, 576], [0, 576]]
+overrides: {}

@@ -1,0 +1,14 @@
+# PLACEHOLDER (pending E8-T1 real footage, see docs/data_checklist.md): describes
+# the city-mode occluded rider-down demo scenario for GATE-A. gt_event_time_s
+# is null until a real clip with a known ground-truth timestamp replaces
+# junction_cam.yaml's placeholder source_video.
+scenario_id: scenario1
+camera_config: configs/cameras/junction_cam.yaml
+description: >
+  City-mode occluded rider-down scenario at Trinity Circle. GATE-A requires
+  crowd >= 0.5 while collision stays below its 0.9 override on an
+  occlusion-appropriate clip, fusion crossing the candidate threshold, and
+  the incident reaching DISPATCHED with a single Confirm tap.
+expected:
+  type: city_riderdown_occluded
+  gt_event_time_s: null

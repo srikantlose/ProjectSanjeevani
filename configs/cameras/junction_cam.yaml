@@ -1,0 +1,12 @@
+# PLACEHOLDER source_video pending E8-T1 real footage (see docs/data_checklist.md
+# and PROGRESS.md's E8-T2 deviation note). camera_id/mode/location are the real,
+# final demo values from plan.md; only source_video + rois need to change once
+# the real occluded rider-down clip lands -- swap is source_video + a manifest
+# row, nothing structural.
+camera_id: junction_cam
+mode: city
+source_video: tests/fixtures/vtest.avi
+location: {lat: 12.9730, lon: 77.6194, label: "Trinity Circle"}
+rois:
+  road: [[0, 0], [768, 0], [768, 576], [0, 576]]
+overrides: {}

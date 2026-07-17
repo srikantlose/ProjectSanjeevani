@@ -1,0 +1,14 @@
+# PLACEHOLDER (pending E8-T1 real footage, see docs/data_checklist.md): describes
+# the highway-mode stationary-vehicle demo scenario for GATE-B. gt_event_time_s
+# is null until a real clip with a known ground-truth timestamp replaces
+# highway_cam.yaml's placeholder source_video.
+scenario_id: scenario2
+camera_config: configs/cameras/highway_cam.yaml
+description: >
+  Highway-mode stationary-vehicle scenario near the Hebbal flyover approach
+  (NH-44). GATE-B requires the stationary override to fire and both
+  scenarios to run back-to-back matching all 7 beats of the demo narrative
+  with no manual intervention beyond starting each engine run + Confirm taps.
+expected:
+  type: highway_stationary
+  gt_event_time_s: null
