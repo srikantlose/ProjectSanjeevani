@@ -17,3 +17,6 @@ data/processed/ccd_normal_0012.mp4,city_negative,0,,configs/cameras/junction_cam
 data/processed/ccd_normal_0013.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
 data/processed/ccd_normal_0014.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
 data/processed/ccd_normal_0015.mp4,city_negative,0,,configs/cameras/junction_cam.yaml,
+data/processed/cadp_0001.mp4,city_collision,1,3.0,configs/cameras/junction_cam.yaml,CADP; fixed CCTV intersection cam; car flips mid-air into parked car
+data/processed/cadp_0016.mp4,city_crowd_only,1,27.0,configs/cameras/junction_cam.yaml,CADP; fixed CCTV cam; bus incident, crowd of pedestrians/cyclists forms and grows through ~100s
+data/processed/cadp_0024.mp4,city_riderdown_occluded,1,24.5,configs/cameras/junction_cam.yaml,CADP; fixed CCTV intersection cam; motorcycle goes down, rider occluded by gathering crowd/onlookers within a few seconds
