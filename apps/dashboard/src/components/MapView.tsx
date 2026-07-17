@@ -1,7 +1,7 @@
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { useEffect, useRef, useState } from 'react'
-import { API_BASE, fetchHospitals, type HospitalRecord } from '../lib/api'
+import { API_BASE, fetchHospitals, fetchJunctions, type HospitalRecord, type JunctionRecord } from '../lib/api'
 import { useStore } from '../store'
 
 const CENTER: [number, number] = [77.6, 12.97]
@@ -14,11 +14,14 @@ function MapView() {
   const ambulanceMarkerRef = useRef<maplibregl.Marker | null>(null)
   const incidentMarkerRef = useRef<maplibregl.Marker | null>(null)
   const hospitalMarkerRef = useRef<maplibregl.Marker | null>(null)
+  const corridorMarkersRef = useRef<Record<string, maplibregl.Marker>>({})
   const tweenFrameRef = useRef<number | null>(null)
 
   const incidents = useStore((s) => s.incidents)
   const ambulances = useStore((s) => s.ambulances)
+  const corridor = useStore((s) => s.corridor)
   const [hospitals, setHospitals] = useState<HospitalRecord[]>([])
+  const [junctions, setJunctions] = useState<JunctionRecord[]>([])
 
   const dispatchedIncident = Object.values(incidents).find((i) => i.dispatch)
 
@@ -26,6 +29,9 @@ function MapView() {
     fetchHospitals()
       .then(setHospitals)
       .catch((err) => console.error('fetchHospitals failed', err))
+    fetchJunctions()
+      .then(setJunctions)
+      .catch((err) => console.error('fetchJunctions failed', err))
   }, [])
 
   // Map + route line layer setup (runs once).
@@ -103,6 +109,50 @@ function MapView() {
     if (map.isStyleLoaded()) draw()
     else map.once('load', draw)
   }, [dispatchedIncident, hospitals])
+
+  // Corridor junction markers, labeled with signal state text; only shown for
+  // junctions the store actually has a state for (i.e. relevant to the active
+  // or most recent dispatch), not all seeded junctions.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    const draw = () => {
+      const markers = corridorMarkersRef.current
+      const activeIds = Object.keys(corridor)
+
+      for (const id of Object.keys(markers)) {
+        if (!activeIds.includes(id)) {
+          markers[id].remove()
+          delete markers[id]
+        }
+      }
+
+      for (const id of activeIds) {
+        const junction = junctions.find((j) => j.id === id)
+        if (!junction) continue
+        const state = corridor[id]
+
+        let marker = markers[id]
+        if (!marker) {
+          const el = document.createElement('div')
+          el.style.background = 'white'
+          el.style.border = '1px solid black'
+          el.style.borderRadius = '999px'
+          el.style.padding = '2px 6px'
+          el.style.fontSize = '10px'
+          el.textContent = state
+          marker = new maplibregl.Marker({ element: el }).setLngLat([junction.lon, junction.lat]).addTo(map)
+          markers[id] = marker
+        } else {
+          marker.getElement().textContent = state
+        }
+      }
+    }
+
+    if (map.isStyleLoaded()) draw()
+    else map.once('load', draw)
+  }, [corridor, junctions])
 
   // Tween the ambulance marker between position ticks.
   useEffect(() => {

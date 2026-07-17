@@ -22,6 +22,19 @@ export async function fetchHospitals(): Promise<HospitalRecord[]> {
   return res.json()
 }
 
+export interface JunctionRecord {
+  id: string
+  name: string
+  lat: number
+  lon: number
+}
+
+export async function fetchJunctions(): Promise<JunctionRecord[]> {
+  const res = await fetch(`${API_BASE}/api/junctions`)
+  if (!res.ok) throw new Error(`fetchJunctions failed: ${res.status}`)
+  return res.json()
+}
+
 export async function verifyIncident(id: string, decision: 'confirm' | 'reject'): Promise<{ id: string; status: string }> {
   const res = await fetch(`${API_BASE}/api/incidents/${id}/verify`, {
     method: 'POST',
