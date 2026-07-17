@@ -15,7 +15,7 @@ function App() {
     fetchIncidents()
       .then(setIncidents)
       .catch((err) => console.error('fetchIncidents failed', err))
-    connectWS()
+    return connectWS()
   }, [setIncidents])
 
   return (
