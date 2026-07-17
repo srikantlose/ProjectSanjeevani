@@ -39,6 +39,7 @@ signals:
     min_samples: 4
     formation_window_s: 8.0
     formation_growth_threshold: 4
+    settled_speed_threshold: 5.0
     convergence_cos_threshold: 0.5
     formation_only_score: 0.5
     confirmed_score: 0.8

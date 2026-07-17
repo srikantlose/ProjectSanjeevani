@@ -1,12 +1,41 @@
-# PLACEHOLDER source_video pending E8-T1 real footage (see docs/data_checklist.md
-# and PROGRESS.md's E8-T2 deviation note). camera_id/mode/location are the real,
-# final demo values from plan.md; only source_video + rois need to change once
-# the real occluded rider-down clip lands -- swap is source_video + a manifest
-# row, nothing structural.
+# Real E8-T1 footage: CADP cadp_0016.mp4, fixed CCTV plaza/street cam (not
+# Bengaluru -- best available real confirmed clip per plan.md's data-acquisition
+# decision). camera_id/mode/location remain the demo's real final values; only
+# source_video + rois changed from the vtest.avi placeholder.
+#
+# cadp_0024.mp4 (occluded rider-down) was tried first and worked end-to-end
+# through E8-T2's ROI/pipeline wiring, but its GATE-A calibration hit a hard
+# ceiling documented in PROGRESS.md: the clip's mid-clip digital zoom degrades
+# detection density right at the incident to the point where neither crowd
+# clustering nor rider_down's vehicle-correlation can fire reliably, regardless
+# of camera-YAML tuning. cadp_0016 is used instead: a fixed camera (no zoom)
+# showing a bus-stop incident where a bystander crowd visibly forms and grows
+# around the bus's front wheel over ~80s -- exactly the crowd-carries-the-
+# occluded-incident story GATE-A is testing, and detection density holds up
+# because the framing never changes.
 camera_id: junction_cam
 mode: city
-source_video: tests/fixtures/vtest.avi
+source_video: data/processed/cadp_0016.mp4
 location: {lat: 12.9730, lon: 77.6194, label: "Trinity Circle"}
 rois:
-  road: [[0, 0], [768, 0], [768, 576], [0, 576]]
-overrides: {}
+  road: [[0, 10], [1280, 10], [1280, 720], [0, 720]]
+overrides:
+  fusion:
+    weights:
+      collision: 0.35
+      rider_down: 0.10  # this camera's real incidents (bus/pedestrian, not motorcycle) never engage rider_down --
+                         # VEHICLE_CLASSES is {motorcycle, bicycle}, which structurally excludes a bus, so this
+                         # signal is a legitimate near-zero contributor here specifically.
+      crowd: 0.40  # boosted from 0.20: this camera's incidents are crowd-carried (no clean vehicle-vehicle
+                   # collision is ever visible), so crowd is the primary evidence, not a minor supporting signal.
+      flow: 0.15
+  signals:
+    collision:
+      stationary_duration_s: 45.0  # 3.0 default false-confirms on ordinary stopped/parked buses and autos in this
+                                    # busy street scene (same false-positive pattern found and documented for
+                                    # cadp_0024); no real vehicle-vehicle collision occurs in this clip either.
+      velocity_drop_threshold: 25.0  # 15.0 default trips on tracker jitter from dense weaving traffic
+    crowd:
+      eps_px: 150.0  # 40.0 default never clusters real bystanders in this footage even when 10+ are detected
+                     # simultaneously (verified via probe) -- they're spread around/behind the bus at a scale
+                     # this camera's distance puts well past 40px apart

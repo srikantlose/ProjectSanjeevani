@@ -38,7 +38,7 @@ def test_highway_cam_loads_with_hebbal_location():
 
 
 def test_scenario_yamls_reference_valid_camera_configs():
-    for scenario_name, expected_type in [("scenario1.yaml", "city_riderdown_occluded"), ("scenario2.yaml", "highway_stationary")]:
+    for scenario_name, expected_type in [("scenario1.yaml", "city_crowd_only"), ("scenario2.yaml", "highway_stationary")]:
         with open(CONFIGS_DIR / "scenarios" / scenario_name) as f:
             scenario = yaml.safe_load(f)
 
