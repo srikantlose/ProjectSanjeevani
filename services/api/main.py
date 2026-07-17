@@ -11,7 +11,7 @@ from starlette.staticfiles import StaticFiles
 
 from services.api import models  # noqa: F401 -- registers ORM models on Base before create_all
 from services.api.db import Base, SessionLocal, engine
-from services.api.routers import ambulances, hospitals, incidents, junctions, tiles
+from services.api.routers import ambulances, hospitals, incidents, junctions, metrics, tiles
 from services.api.seed import load_seed_data
 from services.api.ws import router as ws_router
 
@@ -40,6 +40,7 @@ app.include_router(hospitals.router)
 app.include_router(ambulances.router)
 app.include_router(incidents.router)
 app.include_router(junctions.router)
+app.include_router(metrics.router)
 app.include_router(ws_router)
 app.include_router(tiles.router)
 
